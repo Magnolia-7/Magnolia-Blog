@@ -1,0 +1,42 @@
+/* 全局盒模型，避免 padding / border 撑大布局 */
+* {
+  box-sizing: border-box;
+}
+
+/* 页面级滚动和基础字体 */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  color: #1f1f1f;
+  background: #fffdfc;
+}
+
+/* 链接默认继承所在区域的文字颜色 */
+a {
+  color: inherit;
+}
+
+/* 表单和按钮继承正文的字体 */
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* 全站按钮默认可点击光标 */
+button {
+  cursor: pointer;
+}
