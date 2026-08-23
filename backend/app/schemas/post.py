@@ -32,3 +32,11 @@ class PostResponse(PostBase):
     model_config = {
         "from_attributes": True
     }
+
+
+class PaginatedPostResponse(BaseModel):
+    items: list[PostResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

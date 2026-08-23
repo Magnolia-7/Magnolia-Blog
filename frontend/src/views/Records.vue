@@ -10,19 +10,19 @@
     <div class="tabs">
       <button
         :class="{ active: activeCategory === '' }"
-        @click="loadPosts('')"
+        @click="loadPosts('', 1)"
       >
         全部
       </button>
       <button
         :class="{ active: activeCategory === 'life' }"
-        @click="loadPosts('life')"
+        @click="loadPosts('life', 1)"
       >
         生活记录
       </button>
       <button
         :class="{ active: activeCategory === 'study' }"
-        @click="loadPosts('study')"
+        @click="loadPosts('study', 1)"
       >
         学习笔记
       </button>
@@ -69,6 +69,35 @@
         </div>
       </article>
     </div>
+
+    <div v-if="totalPages > 1" class="pagination">
+      <button
+        type="button"
+        :disabled="currentPage === 1 || loading"
+        @click="changePage(currentPage - 1)"
+      >
+        上一页
+      </button>
+
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        type="button"
+        :class="{ active: currentPage === page }"
+        :disabled="loading"
+        @click="changePage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        type="button"
+        :disabled="currentPage === totalPages || loading"
+        @click="changePage(currentPage + 1)"
+      >
+        下一页
+      </button>
+    </div>
   </div>
 </template>
 
@@ -80,22 +109,43 @@ const posts = ref([]);
 const loading = ref(false);
 const error = ref("");
 const activeCategory = ref("");
+const currentPage = ref(1);
+const totalPages = ref(1);
+const pageSize = 9;
 
-async function loadPosts(category = "") {
+async function loadPosts(category = activeCategory.value, page = 1) {
   activeCategory.value = category;
+  currentPage.value = page;
   loading.value = true;
   error.value = "";
 
   try {
-    const params = category ? { category } : {};
+    const params = {
+      page,
+      page_size: pageSize,
+    };
+
+    if (category) {
+      params.category = category;
+    }
+
     const response = await getPosts(params);
-    posts.value = response.data;
+    posts.value = response.data.items;
+    totalPages.value = response.data.total_pages || 1;
   } catch (err) {
     console.error(err);
     error.value = "文章加载失败，请检查后端是否启动或 CORS 是否配置正确";
   } finally {
     loading.value = false;
   }
+}
+
+function changePage(page) {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) {
+    return;
+  }
+
+  loadPosts(activeCategory.value, page);
 }
 
 function formatCategory(category) {
@@ -282,6 +332,43 @@ onMounted(() => {
   margin: 16px 0 0;
   color: #8b7c82;
   font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.pagination button {
+  min-width: 42px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(216, 154, 170, 0.32);
+  border-radius: 999px;
+  color: #8f5f6b;
+  background: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled),
+.pagination button.active {
+  color: #ffffff;
+  border-color: #b87b8b;
+  background: #b87b8b;
+  transform: translateY(-1px);
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 @media (max-width: 960px) {
