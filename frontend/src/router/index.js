@@ -7,6 +7,9 @@ import PostDetail from "../views/PostDetail.vue";
 import Search from "../views/Search.vue";
 import Login from "../views/Login.vue";
 import Admin from "../views/Admin.vue";
+import Library from "../views/Library.vue";
+import Guestbook from "../views/Guestbook.vue";
+import Changelog from "../views/Changelog.vue";
 
 const routes = [
   {
@@ -35,6 +38,21 @@ const routes = [
     component: Search
   },
   {
+    path: '/library',
+    name: 'Library',
+    component: Library
+  },
+  {
+    path: '/guestbook',
+    name: 'Guestbook',
+    component: Guestbook
+  },
+  {
+    path: '/changelog',
+    name: 'Changelog',
+    component: Changelog
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login
@@ -55,14 +73,14 @@ const router = createRouter(
     routes
   });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const token = localStorage.getItem("access_token");
 
   if (to.meta.requiresAuth && !token) {
-    next("/login");
-  } else {
-    next();
+    return "/login";
   }
+
+  return true;
 });
 
 export default router;

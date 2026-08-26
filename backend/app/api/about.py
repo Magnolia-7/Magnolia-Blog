@@ -10,11 +10,10 @@ router = APIRouter(
     tags=["About"],
 )
 
-@router.get("/", response_model=AboutResponse)
+@router.get("/", response_model=AboutResponse | None)
 def get_about(
     db: Session = Depends(get_db)
     ):
     about = db.query(About).order_by(About.id.asc()).first()
     return about
-
 

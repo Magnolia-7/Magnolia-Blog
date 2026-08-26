@@ -32,7 +32,7 @@ def get_posts(
 
     posts = (
         query
-        .order_by(Post.created_at.desc())
+        .order_by(Post.is_pinned.desc(), Post.published_at.desc(), Post.created_at.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

@@ -1,339 +1,46 @@
 <template>
-  <div class="search-page">
-    <!-- 页面标题区域 -->
-    <header class="search-header">
-      <p class="eyebrow">Search</p>
-      <h1>搜索</h1>
-      <p class="search-subtitle">
-        输入标题，摘要，正文中的关键词查找文章。
-      </p>
-    </header>
+  <div class="page-shell search-page">
+    <header class="page-heading"><p class="eyebrow">Search the archive</p><h1>在时间里寻找</h1><p>按名字定位一篇记录，或选择一段时间，看看那时留下了什么。</p></header>
+    <form class="search-panel surface" @submit.prevent="handleSearch">
+      <div class="keyword-row"><span>⌕</span><input v-model="filters.q" aria-label="搜索关键词" placeholder="输入标题、正文或标签…" /><button class="primary-button">搜索</button></div>
+      <div class="filter-row">
+        <div class="field"><label>内容类型</label><select v-model="filters.category"><option value="">全部内容</option><option value="life">生活记录</option><option value="study">学习笔记</option></select></div>
+        <div class="field"><label>开始日期</label><input v-model="filters.start_date" type="date" /></div>
+        <div class="date-arrow">→</div>
+        <div class="field"><label>结束日期</label><input v-model="filters.end_date" type="date" /></div>
+        <button type="button" class="clear-button" @click="clearFilters">清空</button>
+      </div>
+    </form>
 
-    <!-- 搜索输入区域 -->
-    <div class="search-box">
-      <input
-        v-model="keyword"
-        type="text"
-        placeholder="输入关键词搜索文章"
-        @keyup.enter="handleSearch"
-      />
-      <button @click="handleSearch">搜索</button>
-    </div>
-
-    <!-- 状态提示 -->
-    <div v-if="loading" class="state-card">搜索中...</div>
+    <div class="result-head"><p>{{ searched ? `找到 ${results.length} 条记录` : "可以只选择日期，不必填写关键词" }}</p><span v-if="searched">{{ summary }}</span></div>
+    <div v-if="loading" class="state-card">正在翻找档案…</div>
     <div v-else-if="error" class="state-card error">{{ error }}</div>
-    <div v-else-if="!searched" class="state-card">
-      请输入关键词开始搜索
-    </div>
-    <div v-else-if="results.length === 0" class="state-card">
-      没有找到相关文章
-    </div>
-
-    <!-- 搜索结果 -->
-    <div v-else class="result-list">
+    <div v-else-if="searched && !results.length" class="state-card">没有找到匹配的内容，换一个词或时间试试。</div>
+    <section v-else-if="results.length" class="timeline-results">
       <article v-for="post in results" :key="post.id" class="result-card">
-        <RouterLink class="cover-link" :to="`/posts/${post.id}`">
-          <img
-            v-if="post.cover_image"
-            class="cover-image"
-            :src="post.cover_image"
-            :alt="post.title"
-          />
-          <div v-else class="cover-placeholder">
-            Magnolia Nook
-          </div>
+        <time><strong>{{ day(post.created_at) }}</strong><span>{{ monthYear(post.created_at) }}</span></time>
+        <div class="timeline-dot"></div>
+        <RouterLink class="result-copy surface" :to="`/posts/${post.id}`">
+          <div><small>{{ post.category === "life" ? "生活记录" : "学习笔记" }}</small><span v-if="post.tags">{{ post.tags }}</span></div>
+          <h2>{{ post.title }}</h2><p>{{ post.summary || "没有摘要" }}</p>
         </RouterLink>
-
-        <div class="result-content">
-          <p class="post-category">{{ formatCategory(post.category) }}</p>
-
-          <h2>
-            <RouterLink :to="`/posts/${post.id}`">
-              {{ post.title }}
-            </RouterLink>
-          </h2>
-
-          <p class="summary">
-            {{ post.summary || "暂无摘要" }}
-          </p>
-
-          <p class="meta">
-            {{ formatDate(post.created_at) }}
-          </p>
-        </div>
       </article>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { searchPosts } from "../api/posts";
-
-const keyword = ref("");
-const results = ref([]);
-const loading = ref(false);
-const error = ref("");
-const searched = ref(false);
-
-async function handleSearch() {
-  const q = keyword.value.trim();
-
-  if (!q) {
-    error.value = "请输入搜索关键词";
-    results.value = [];
-    searched.value = false;
-    return;
-  }
-
-  loading.value = true;
-  error.value = "";
-  searched.value = true;
-
-  try {
-    const response = await searchPosts(q);
-    results.value = response.data;
-  } catch (err) {
-    console.error(err);
-    error.value = "搜索失败，请检查后端接口是否正常";
-  } finally {
-    loading.value = false;
-  }
-}
-
-function formatCategory(category) {
-  if (category === "life") return "生活记录";
-  if (category === "study") return "学习笔记";
-  return category || "未分类";
-}
-
-function formatDate(dateString) {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString();
-}
+const filters = reactive({ q: "", category: "", start_date: "", end_date: "" }); const results = ref([]); const searched = ref(false); const loading = ref(false); const error = ref("");
+const summary = computed(() => [filters.q && `关键词「${filters.q}」`, filters.category && (filters.category === "life" ? "生活记录" : "学习笔记"), (filters.start_date || filters.end_date) && "指定时间段"].filter(Boolean).join(" · "));
+async function handleSearch() { if (![filters.q, filters.category, filters.start_date, filters.end_date].some(Boolean)) { error.value = "请输入关键词或至少选择一个筛选条件。"; return; } loading.value = true; error.value = ""; searched.value = true; try { const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value)); results.value = (await searchPosts(params)).data; } catch { error.value = "搜索失败，请稍后重试。"; } finally { loading.value = false; } }
+function clearFilters() { Object.assign(filters, { q: "", category: "", start_date: "", end_date: "" }); results.value = []; searched.value = false; error.value = ""; }
+function day(value) { return new Date(value).getDate().toString().padStart(2, "0"); }
+function monthYear(value) { return new Date(value).toLocaleDateString("zh-CN", { year: "numeric", month: "short" }); }
 </script>
 
 <style scoped>
-.search-page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 72px 24px;
-}
-
-.search-header {
-  margin-bottom: 28px;
-}
-
-.eyebrow {
-  margin: 0 0 12px;
-  color: #b87b8b;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.search-header h1 {
-  margin: 0;
-  color: #151515;
-  font-size: 44px;
-  line-height: 1.1;
-  letter-spacing: -1.2px;
-}
-
-.search-subtitle {
-  max-width: 640px;
-  margin: 18px 0 0;
-  color: #6f6065;
-  font-size: 17px;
-  line-height: 1.9;
-}
-
-.search-box {
-  display: flex;
-  gap: 12px;
-  margin: 30px 0;
-  padding: 10px;
-  border: 1px solid rgba(90, 50, 64, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 18px 48px rgba(90, 50, 64, 0.045);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.search-box input {
-  flex: 1;
-  min-width: 0;
-  padding: 0 14px;
-  border: none;
-  outline: none;
-  color: #1f1f1f;
-  background: transparent;
-}
-
-.search-box input::placeholder {
-  color: #9c8f94;
-}
-
-.search-box button {
-  padding: 10px 22px;
-  border: 1px solid #b87b8b;
-  border-radius: 999px;
-  color: #ffffff;
-  background: #b87b8b;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.search-box button:hover {
-  border-color: #9f6473;
-  background: #9f6473;
-  transform: translateY(-1px);
-}
-
-.state-card {
-  padding: 18px 20px;
-  border: 1px solid rgba(90, 50, 64, 0.08);
-  border-radius: 18px;
-  color: #6f6065;
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.error {
-  color: #c0392b;
-}
-
-.result-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.result-card {
-  overflow: hidden;
-  border: 1px solid rgba(90, 50, 64, 0.08);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 18px 48px rgba(90, 50, 64, 0.055);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.result-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(184, 123, 139, 0.24);
-  box-shadow: 0 24px 64px rgba(90, 50, 64, 0.08);
-}
-
-.cover-link {
-  display: block;
-  text-decoration: none;
-}
-
-.cover-image,
-.cover-placeholder {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  display: block;
-}
-
-.cover-image {
-  object-fit: cover;
-}
-
-.cover-placeholder {
-  display: grid;
-  place-items: center;
-  color: #b87b8b;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  background:
-    radial-gradient(circle at 20% 18%, rgba(255, 237, 242, 0.95), transparent 34%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 241, 245, 0.78));
-}
-
-.result-content {
-  padding: 20px 20px 22px;
-}
-
-.post-category {
-  margin: 0 0 10px;
-  color: #b87b8b;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.result-card h2 {
-  margin: 0;
-  font-size: 22px;
-  line-height: 1.35;
-  letter-spacing: -0.4px;
-}
-
-.result-card h2 a {
-  color: #202020;
-  text-decoration: none;
-}
-
-.result-card h2 a:hover {
-  color: #b87b8b;
-}
-
-.summary {
-  display: -webkit-box;
-  min-height: 58px;
-  margin: 14px 0 0;
-  overflow: hidden;
-  color: #5d5558;
-  line-height: 1.75;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.meta {
-  margin: 16px 0 0;
-  color: #8b7c82;
-  font-size: 14px;
-}
-
-@media (max-width: 960px) {
-  .result-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .search-page {
-    padding: 42px 18px;
-  }
-
-  .search-header h1 {
-    font-size: 36px;
-  }
-
-  .search-box {
-    border-radius: 24px;
-    flex-direction: column;
-  }
-
-  .search-box input {
-    min-height: 42px;
-  }
-
-  .result-list {
-    grid-template-columns: 1fr;
-  }
-}
+.search-panel { padding: 20px; }.keyword-row { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }.keyword-row > span { color: var(--rose-600); font-size: 28px; }.keyword-row input { min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font: 500 clamp(18px, 2vw, 23px) Georgia, "Songti SC", serif; }.filter-row { display: grid; grid-template-columns: 1fr 1fr auto 1fr auto; align-items: end; gap: 14px; padding-top: 18px; }.date-arrow { padding-bottom: 13px; color: var(--rose-400); }.clear-button { min-height: 42px; border: 0; color: var(--muted); background: transparent; }.result-head { min-height: 76px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 13px; }.result-head span { color: var(--rose-600); }.timeline-results { max-width: 900px; margin: 0 auto; }.result-card { display: grid; grid-template-columns: 72px 24px 1fr; gap: 14px; min-height: 175px; }.result-card > time { padding-top: 24px; text-align: right; }.result-card time strong { display: block; color: var(--rose-600); font: 34px Georgia, serif; }.result-card time span { color: var(--muted); font-size: 10px; }.timeline-dot { position: relative; }.timeline-dot::before { content: ""; position: absolute; top: 34px; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--rose-500); transform: translateX(-50%); }.timeline-dot::after { content: ""; position: absolute; top: 41px; bottom: 0; left: 50%; width: 1px; background: var(--rose-200); }.result-card:last-child .timeline-dot::after { display: none; }.result-copy { margin-bottom: 18px; padding: 22px 25px; text-decoration: none; transition: .2s ease; }.result-copy:hover { transform: translateX(4px); }.result-copy > div { display: flex; gap: 14px; color: var(--muted); font-size: 11px; }.result-copy small { color: var(--rose-600); font-weight: 750; }.result-copy h2 { margin: 10px 0 7px; font: 500 24px Georgia, "Songti SC", serif; }.result-copy p { margin: 0; color: var(--muted-strong); }
+@media (max-width: 700px) { .filter-row { grid-template-columns: 1fr 1fr; }.date-arrow { display: none; }.result-card { grid-template-columns: 52px 14px 1fr; gap: 7px; }.result-card time strong { font-size: 26px; }.result-copy { padding: 19px; } }
 </style>

@@ -9,6 +9,9 @@ class PostBase(BaseModel):
     cover_image: str | None = None
     category: str = Field(..., description="life 或 study")
     status: str = Field(default="draft", description="draft 或 published")
+    tags: str | None = None
+    is_pinned: bool = False
+    published_at: datetime | None = None
 
 
 class PostCreate(PostBase):
@@ -22,6 +25,9 @@ class PostUpdate(BaseModel):
     cover_image: str | None = None
     category: str | None = None
     status: str | None = None
+    tags: str | None = None
+    is_pinned: bool | None = None
+    published_at: datetime | None = None
 
 
 class PostResponse(PostBase):

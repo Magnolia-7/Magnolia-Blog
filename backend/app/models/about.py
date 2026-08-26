@@ -20,6 +20,11 @@ class About(Base):
     mood = Column(String(100), nullable=True)
     short_goal = Column(String(255), nullable=True)
     long_goal = Column(String(255), nullable=True)
+    current_song = Column(String(200), nullable=True)
+    current_song_url = Column(String(500), nullable=True)
+    profile_tags = Column(Text, nullable=True)
+    hero_subtitle = Column(String(500), nullable=True)
+    home_thought = Column(Text, nullable=True)
 
     social_links = Column(Text, nullable=True)
     tech_stack = Column(Text, nullable=True)

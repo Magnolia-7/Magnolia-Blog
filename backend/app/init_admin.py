@@ -1,12 +1,16 @@
 from app.core.database import SessionLocal
 from app.models import AdminUser
 from app.core.security import hash_password
+from app.core.config import settings
 
 def create_admin():
     db = SessionLocal()
     try:
-        username = "admin"
-        password = "123456"
+        username = settings.ADMIN_USERNAME
+        password = settings.ADMIN_PASSWORD
+
+        if not password or len(password) < 12:
+            raise RuntimeError("请在 backend/.env 中设置至少 12 位的 ADMIN_PASSWORD")
 
         existing_user = db.query(AdminUser).filter(AdminUser.username == username).first()
         if existing_user:

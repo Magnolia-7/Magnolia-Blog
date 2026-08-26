@@ -1,42 +1,64 @@
-/* 全局盒模型，避免 padding / border 撑大布局 */
-* {
-  box-sizing: border-box;
+:root {
+  --paper: #fffdf9;
+  --paper-warm: #f8f2ed;
+  --ink: #282322;
+  --muted-strong: #655b58;
+  --muted: #8b7f7b;
+  --rose-50: #fcf0f2;
+  --rose-100: #f7e1e5;
+  --rose-200: #ebc9d0;
+  --rose-300: #dba9b5;
+  --rose-500: #b96f80;
+  --rose-600: #9e586a;
+  --rose-700: #78404e;
+  --sage: #788477;
+  --line: rgba(76, 57, 52, .11);
+  --shadow-sm: 0 10px 30px rgba(68, 45, 41, .06);
+  --shadow-lg: 0 24px 70px rgba(68, 45, 41, .11);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
-/* 页面级滚动和基础字体 */
-html {
-  scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--paper); }
+body { min-width: 320px; min-height: 100vh; margin: 0; background:
+  radial-gradient(circle at 8% 4%, rgba(246, 219, 225, .38), transparent 26rem),
+  radial-gradient(circle at 94% 22%, rgba(223, 229, 219, .34), transparent 30rem),
+  var(--paper); }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; opacity: .13; pointer-events: none; background-image: url("/images/sakura-bg.jpg"); background-size: cover; filter: grayscale(.25) sepia(.1); }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+img { max-width: 100%; }
+a { color: inherit; }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "PingFang SC",
-    "Microsoft YaHei",
-    sans-serif;
-  color: #1f1f1f;
-  background: #fffdfc;
-}
+.page-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 76px 0 96px; }
+.page-heading { margin-bottom: 36px; }
+.page-heading .eyebrow, .eyebrow { margin: 0 0 12px; color: var(--rose-600); font-size: 12px; font-weight: 750; letter-spacing: .18em; text-transform: uppercase; }
+.page-heading h1 { margin: 0; font-family: Georgia, "Songti SC", serif; font-size: clamp(40px, 6vw, 68px); font-weight: 500; letter-spacing: -.04em; }
+.page-heading p:last-child { max-width: 680px; margin: 18px 0 0; color: var(--muted-strong); font-size: 16px; line-height: 1.9; }
+.surface { border: 1px solid var(--line); border-radius: 24px; background: rgba(255, 253, 249, .84); box-shadow: var(--shadow-sm); }
+.state-card { padding: 28px; border: 1px dashed var(--rose-200); border-radius: 20px; color: var(--muted); text-align: center; background: rgba(255,255,255,.56); }
+.state-card.error, .error-text { color: #a84d4d; }
+.success-text { color: #55745c; }
+.pill-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 30px; }
+.pill-tabs button { min-height: 40px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted-strong); background: rgba(255,255,255,.72); }
+.pill-tabs button:hover, .pill-tabs button.active { color: #fff; border-color: var(--rose-600); background: var(--rose-600); }
+.primary-button, .secondary-button, .danger-button { min-height: 42px; padding: 0 18px; border-radius: 12px; transition: .18s ease; }
+.primary-button { border: 1px solid var(--rose-600); color: #fff; background: var(--rose-600); }
+.primary-button:hover { background: var(--rose-700); transform: translateY(-1px); }
+.secondary-button { border: 1px solid var(--line); color: var(--ink); background: var(--paper); }
+.secondary-button:hover { border-color: var(--rose-300); color: var(--rose-700); }
+.danger-button { border: 1px solid #e8cccc; color: #9c4747; background: #fff7f7; }
+button:disabled { cursor: not-allowed; opacity: .55; transform: none !important; }
+.field { display: grid; gap: 7px; }
+.field label { color: var(--muted-strong); font-size: 13px; font-weight: 700; }
+.field input, .field textarea, .field select { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; outline: none; color: var(--ink); background: rgba(255,255,255,.86); transition: .18s ease; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--rose-300); box-shadow: 0 0 0 3px var(--rose-50); }
+.field textarea { resize: vertical; line-height: 1.7; }
 
-/* 链接默认继承所在区域的文字颜色 */
-a {
-  color: inherit;
-}
-
-/* 表单和按钮继承正文的字体 */
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-/* 全站按钮默认可点击光标 */
-button {
-  cursor: pointer;
+@media (max-width: 720px) {
+  .page-shell { width: min(100% - 28px, 1180px); padding: 52px 0 72px; }
+  .page-heading { margin-bottom: 28px; }
 }

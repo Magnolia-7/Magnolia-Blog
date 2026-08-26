@@ -8,10 +8,8 @@ export function getPostDetail(id){
   return request.get(`/api/posts/${id}/`);
 }
 
-export function searchPosts(query){
-  return request.get('/api/search/', { 
-    params: { q: query } 
-  });
+export function searchPosts(params = {}){
+  return request.get('/api/search/', { params });
 }
 
 export function getAdminPosts() {

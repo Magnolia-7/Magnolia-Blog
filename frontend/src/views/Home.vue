@@ -1,419 +1,111 @@
 <template>
   <div class="home-page">
-    <!-- 第一屏：欢迎和当前展示内容 -->
-    <section ref="heroSectionRef" class="snap-section hero-section">
-      <div class="hero-inner">
-        <p class="eyebrow">Magnolia Nook · Personal Blog</p>
-
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Magnolia Nook · Since 2026</p>
+        <div class="hero-kicker">欢迎来到</div>
         <h1>{{ currentText }}</h1>
-
-        <p class="subtitle">
-          一个安静的个人空间，用来记录学习、生活、思考，以及那些慢慢长大的瞬间。
+        <p class="hero-subtitle">
+          {{ about.hero_subtitle || "一个安静的个人空间，用来记录学习、生活、思考，以及那些慢慢长大的瞬间。" }}
         </p>
+        <div class="hero-actions">
+          <RouterLink class="primary-link" to="/records">翻阅记录</RouterLink>
+          <RouterLink class="text-link" to="/about">认识我 <span>↗</span></RouterLink>
+        </div>
       </div>
 
-      <div class="hero-side-card">
-        <div class="flower-dot">✦</div>
-        <p>Today Sharing</p>
-        <h3>
-          <a href="https://music.163.com/song?id=31108722&uct2=U2FsdGVkX18j7WRBaAt8BjAtP1VeSdjIq/ZJAcAx08Y=" target="_blank" style="text-decoration: none;" >
-            兄妹（Live） - 方大同/薛凯琪
-          </a>
-        </h3>
-        <span class="music-note">♪</span>
-      </div>
+      <aside class="now-card">
+        <div class="now-top"><span>NOW PLAYING</span><i></i></div>
+        <div class="album-mark">♪</div>
+        <div>
+          <small>此刻在听</small>
+          <h2>
+            <a v-if="about.current_song_url" :href="about.current_song_url" target="_blank" rel="noopener noreferrer">
+              {{ about.current_song || "还没有分享歌曲" }}
+            </a>
+            <span v-else>{{ about.current_song || "还没有分享歌曲" }}</span>
+          </h2>
+        </div>
+        <div class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </aside>
 
-      <div class="scroll-arrow" aria-hidden="true">
-        ↓
-      </div>
+      <a class="scroll-cue" href="#thought"><span>SCROLL</span><i>↓</i></a>
     </section>
 
-    <!-- 第二屏：心里话内容 -->
-    <section ref="thoughtSectionRef" class="snap-section thought-section">
-      <div class="flower-mark" aria-hidden="true">
-        <span>✿</span>
-      </div>
-
-      <div class="thought-card">
-        <p class="eyebrow">Inner monologue</p>
-        <h2>Thought</h2>
-
-        <p>
-          我想把这个网站当作一个长期维护的小窝。它不需要一开始就完美，
-          但它会随着我的学习、生活和思考一点点生长。
-        </p>
-
-
-        <p>
-          我会在这里记录技术上的收获，也记录生活里细小的瞬间。
-          有些内容可能很理性，有些内容可能很感性，但它们都会是真实的我。
-        </p>
-
-        <p>
-          最终成为一本介绍我的书📖。
-        </p>
+    <section id="thought" class="thought-section">
+      <div class="thought-index">02</div>
+      <div class="thought-copy">
+        <p class="eyebrow">A note from me</p>
+        <h2>写给此刻，也写给以后。</h2>
+        <div class="thought-text">
+          <p v-for="paragraph in thoughtParagraphs" :key="paragraph">{{ paragraph }}</p>
+        </div>
+        <p class="thought-sign">— Magnolia</p>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { getAbout } from "../api/about";
 
-// 首页标题轮播文案
-const texts = [
-  "欢迎来到我的个人博客",
-  "要天天开心😊",
-];
-
-const currentIndex = ref(0);
+const texts = ["我的个人博客", "这一本生长中的书"];
 const currentText = ref(texts[0]);
-const heroSectionRef = ref(null);
-const thoughtSectionRef = ref(null);
+const currentIndex = ref(0);
+const about = ref({});
+let timer;
 
-let timer = null;
-let autoScrollTimer = null;
-let isAutoScrolling = false;
+const fallbackThought = "我想把这个网站当作一个长期维护的小窝。它不需要一开始就完美，但它会随着我的学习、生活和思考一点点生长。\n\n我会在这里记录技术上的收获，也记录生活里细小的瞬间。有些内容可能很理性，有些内容可能很感性，但它们都会是真实的我。\n\n最终成为一本介绍我的书。";
+const thoughtParagraphs = computed(() => (about.value.home_thought || fallbackThought).split(/\n\s*\n/).filter(Boolean));
 
-// 读取固定 header 高度，滚动定位时避开顶部导航
-function getHeaderOffset() {
-  return document.querySelector(".site-header")?.offsetHeight || 48;
-}
-
-// 计算目标 section 在整页里的顶部位置
-function getSectionTop(section) {
-  return window.scrollY + section.getBoundingClientRect().top - getHeaderOffset();
-}
-
-// 控制整页滚动到指定 section
-function scrollToSection(section) {
-  if (!section) return;
-
-  isAutoScrolling = true;
-
-  window.scrollTo({
-    top: getSectionTop(section),
-    behavior: "smooth",
-  });
-
-  window.clearTimeout(autoScrollTimer);
-  autoScrollTimer = window.setTimeout(() => {
-    isAutoScrolling = false;
-  }, 720);
-}
-
-// 首页两屏之间的滚轮翻页
-function handleHomeWheel(event) {
-  if (isAutoScrolling || Math.abs(event.deltaY) < 4) {
-    return;
-  }
-
-  const heroSection = heroSectionRef.value;
-  const thoughtSection = thoughtSectionRef.value;
-
-  if (!heroSection || !thoughtSection) {
-    return;
-  }
-
-  const headerOffset = getHeaderOffset();
-  const currentTop = window.scrollY;
-  const heroTop = getSectionTop(heroSection);
-  const thoughtTop = getSectionTop(thoughtSection);
-  const thoughtBottom = thoughtTop + thoughtSection.offsetHeight;
-  const isInsideHome = currentTop >= heroTop - 8 && currentTop < thoughtBottom - headerOffset;
-
-  if (!isInsideHome) {
-    return;
-  }
-
-  if (event.deltaY > 0 && currentTop < thoughtTop - 12) {
-    event.preventDefault();
-    scrollToSection(thoughtSection);
-  }
-
-  if (event.deltaY < 0 && currentTop > heroTop + 12 && currentTop < thoughtBottom - 12) {
-    event.preventDefault();
-    scrollToSection(heroSection);
-  }
-}
-
-// 定时切换首屏标题
-onMounted(() => {
-  timer = setInterval(() => {
+onMounted(async () => {
+  try { about.value = (await getAbout()).data || {}; } catch (error) { console.error(error); }
+  timer = window.setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % texts.length;
     currentText.value = texts[currentIndex.value];
-  }, 2800);
-
-  window.addEventListener("wheel", handleHomeWheel, { passive: false });
+  }, 3200);
 });
-
-// 离开首页时清理定时器
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer);
-  }
-
-  window.clearTimeout(autoScrollTimer);
-  window.removeEventListener("wheel", handleHomeWheel);
-});
+onUnmounted(() => window.clearInterval(timer));
 </script>
 
 <style scoped>
-/* 首页容器跟随整页滚动，不单独产生内部滚动条 */
-.home-page {
-  min-height: calc(100vh - 48px);
-}
-
-/* 每一屏占满 header 下方的可视高度 */
-.snap-section {
-  min-height: calc(100vh - 48px);
-}
-
-/* 首屏介绍区域 */
-.hero-section {
-  position: relative;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 32px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
-  align-items: center;
-  gap: 72px;
-}
-
-.hero-inner {
-  position: relative;
-  z-index: 1;
-  transform: translateY(-12px);
-}
-
-/* 小标题样式 */
-.eyebrow {
-  margin: 0 0 20px;
-  color: #b87b8b;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.hero-inner h1 {
-  max-width: 780px;
-  min-height: 156px;
-  margin: 0;
-  color: #151515;
-  font-size: clamp(48px, 6.5vw, 86px);
-  line-height: 1.08;
-  font-weight: 800;
-  letter-spacing: -3px;
-  text-shadow: 0 8px 28px rgba(255, 255, 255, 0.74);
-}
-
-.subtitle {
-  max-width: 680px;
-  margin: 26px 0 0;
-  color: #5d5558;
-  font-size: 18px;
-  line-height: 2;
-  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.72);
-}
-
-/* 首屏右侧音乐卡片 */
-.hero-side-card {
-  position: relative;
-  z-index: 1;
-  min-height: 260px;
-  padding: 38px 34px;
-  border: 1px solid rgba(90, 50, 64, 0.08);
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 20% 18%, rgba(255, 237, 242, 0.95), transparent 30%),
-    rgba(255, 255, 255, 0.7);
-  box-shadow: 0 24px 70px rgba(90, 50, 64, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  overflow: hidden;
-}
-
-.flower-dot {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 34px;
-  border-radius: 50%;
-  color: #b87b8b;
-  background: #fff1f5;
-  border: 1px solid #efd1d9;
-}
-
-/* 音乐卡片里的装饰音符 */
-.hero-side-card p {
-  margin: 0 0 10px;
-  color: #8b7c82;
-  font-size: 13px;
-}
-
-.hero-side-card h2 {
-  max-width: 260px;
-  margin: 0;
-  color: #202020;
-  font-size: 30px;
-  line-height: 1.42;
-  letter-spacing: -0.8px;
-}
-
-.music-note {
-  position: absolute;
-  right: 34px;
-  bottom: 24px;
-  color: rgba(216, 154, 170, 0.34);
-  font-size: 82px;
-  line-height: 1;
-}
-
-/* 下滑提示箭头 */
-.scroll-arrow {
-  position: absolute;
-  left: 50%;
-  bottom: 34px;
-  z-index: 2;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(184, 123, 139, 0.28);
-  border-radius: 50%;
-  color: #b87b8b;
-  font-size: 20px;
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: 0 14px 32px rgba(184, 123, 139, 0.14);
-  transform: translateX(-50%);
-  animation: arrowFloat 1.8s ease-in-out infinite;
-}
-
-/* 箭头轻微浮动动画 */
-@keyframes arrowFloat {
-  0% {
-    transform: translate(-50%, 0);
-    opacity: 0.45;
-  }
-
-  50% {
-    transform: translate(-50%, 8px);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translate(-50%, 0);
-    opacity: 0.45;
-  }
-}
-
-/* 第二屏心里话区域 */
-.thought-section {
-  position: relative;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 32px;
-  display: grid;
-  grid-template-columns: 180px minmax(0, 760px);
-  align-items: center;
-  gap: 56px;
-}
-
-/* 第二屏左侧花朵标记 */
-.flower-mark {
-  width: 132px;
-  height: 132px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: #b87b8b;
-  background:
-    radial-gradient(circle, #ffffff 0%, #fff6f8 58%, rgba(248, 219, 226, 0.58) 100%);
-  border: 1px solid rgba(216, 154, 170, 0.28);
-  box-shadow: 0 18px 48px rgba(216, 154, 170, 0.16);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.flower-mark span {
-  font-size: 56px;
-}
-
-/* 第二屏正文卡片 */
-.thought-card {
-  padding: 44px 48px;
-  border: 1px solid rgba(90, 50, 64, 0.07);
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 24px 72px rgba(90, 50, 64, 0.055);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.thought-card h2 {
-  margin: 0 0 30px;
-  color: #151515;
-  font-size: 44px;
-  line-height: 1.2;
-  letter-spacing: -1.2px;
-}
-
-.thought-card p {
-  margin: 0 0 22px;
-  color: #4f464a;
-  font-size: 18px;
-  line-height: 2.05;
-}
-
-.thought-card p:last-child {
-  margin-bottom: 0;
-}
-
-/* 首页移动端布局 */
-@media (max-width: 900px) {
-  .snap-section {
-    min-height: calc(100vh - 52px);
-  }
-
-  .hero-section {
-    grid-template-columns: 1fr;
-    gap: 34px;
-    padding: 78px 24px;
-  }
-
-  .hero-inner h1 {
-    min-height: auto;
-    font-size: clamp(42px, 12vw, 64px);
-  }
-
-  .scroll-arrow {
-    display: none;
-  }
-
-  .thought-section {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 78px 24px;
-  }
-
-  .flower-mark {
-    width: 86px;
-    height: 86px;
-  }
-
-  .flower-mark span {
-    font-size: 38px;
-  }
-
-  .thought-card {
-    padding: 32px 26px;
-  }
-
-  .thought-card h2 {
-    font-size: 34px;
-  }
+.home-page { overflow: hidden; }
+.hero { position: relative; width: min(1240px, calc(100% - 48px)); min-height: calc(100svh - 68px); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); align-items: center; gap: clamp(48px, 8vw, 110px); padding: 80px 0 100px; }
+.hero::before { content: "M"; position: absolute; left: -7vw; top: 42%; z-index: -1; color: rgba(185,111,128,.055); font-family: Georgia, serif; font-size: min(52vw, 650px); line-height: .5; }
+.hero-kicker { margin-bottom: 10px; color: var(--muted); font-family: "Songti SC", serif; font-size: 18px; }
+.hero h1 { max-width: 780px; min-height: 1.1em; margin: 0; font-family: Georgia, "Songti SC", serif; font-size: clamp(56px, 7.2vw, 104px); font-weight: 500; line-height: 1.03; letter-spacing: -.06em; }
+.hero-subtitle { max-width: 620px; margin: 30px 0 0; color: var(--muted-strong); font-size: clamp(16px, 1.5vw, 19px); line-height: 2; }
+.hero-actions { display: flex; align-items: center; gap: 24px; margin-top: 36px; }
+.primary-link { padding: 13px 24px; border-radius: 999px; color: #fff; background: var(--rose-600); text-decoration: none; box-shadow: 0 12px 30px rgba(158,88,106,.22); }
+.text-link { color: var(--muted-strong); text-decoration: none; }
+.text-link span { margin-left: 5px; color: var(--rose-600); }
+.now-card { position: relative; min-height: 390px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,.84); border-radius: 180px 180px 28px 28px; background: linear-gradient(165deg, rgba(247,225,229,.9), rgba(255,253,249,.88) 55%, rgba(228,233,224,.7)); box-shadow: var(--shadow-lg); overflow: hidden; }
+.now-card::after { content: ""; position: absolute; inset: 45% -30% -35%; border: 1px solid rgba(185,111,128,.16); border-radius: 50%; }
+.now-top { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--rose-700); font-size: 10px; letter-spacing: .18em; }
+.now-top i { width: 5px; height: 5px; border-radius: 50%; background: var(--rose-500); box-shadow: 0 0 0 5px rgba(185,111,128,.1); }
+.album-mark { width: 116px; height: 116px; display: grid; place-items: center; align-self: center; border-radius: 50%; color: var(--rose-700); font-size: 38px; background: rgba(255,255,255,.65); box-shadow: inset 0 0 0 1px rgba(120,64,78,.12), 0 18px 50px rgba(120,64,78,.12); }
+.now-card small { position: relative; color: var(--muted); }
+.now-card h2 { position: relative; margin: 8px 0 0; font-family: Georgia, "Songti SC", serif; font-size: 23px; line-height: 1.45; }
+.now-card h2 a { text-decoration: none; }
+.sound-bars { position: absolute; right: 28px; bottom: 28px; display: flex; align-items: end; gap: 3px; height: 20px; }
+.sound-bars i { width: 2px; background: var(--rose-500); animation: sound 1s ease-in-out infinite alternate; }
+.sound-bars i:nth-child(1) { height: 8px; }.sound-bars i:nth-child(2) { height: 16px; animation-delay: -.3s; }.sound-bars i:nth-child(3) { height: 12px; animation-delay: -.6s; }.sound-bars i:nth-child(4) { height: 19px; animation-delay: -.15s; }
+@keyframes sound { to { height: 5px; opacity: .45; } }
+.scroll-cue { position: absolute; left: 0; bottom: 34px; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 10px; letter-spacing: .18em; text-decoration: none; }
+.scroll-cue i { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-style: normal; }
+.thought-section { min-height: 80vh; padding: 120px max(24px, calc((100vw - 1060px) / 2)); display: grid; grid-template-columns: 120px minmax(0, 760px); align-items: start; gap: 70px; background: rgba(248,242,237,.8); border-block: 1px solid var(--line); }
+.thought-index { color: var(--rose-300); font-family: Georgia, serif; font-size: 88px; line-height: 1; }
+.thought-copy h2 { max-width: 700px; margin: 0 0 40px; font-family: Georgia, "Songti SC", serif; font-size: clamp(38px, 5vw, 64px); font-weight: 500; line-height: 1.25; letter-spacing: -.04em; }
+.thought-text { padding-left: 26px; border-left: 1px solid var(--rose-300); }
+.thought-text p { margin: 0 0 22px; color: var(--muted-strong); font-family: "Songti SC", serif; font-size: 18px; line-height: 2.15; }
+.thought-sign { margin-top: 28px; color: var(--rose-600); font-family: Georgia, serif; font-style: italic; }
+@media (max-width: 820px) {
+  .hero { width: calc(100% - 32px); grid-template-columns: 1fr; padding: 72px 0; }
+  .hero h1 { min-height: 2.1em; font-size: clamp(50px, 15vw, 76px); }
+  .now-card { min-height: 330px; max-width: 360px; width: 100%; justify-self: center; }
+  .scroll-cue { display: none; }
+  .thought-section { grid-template-columns: 1fr; gap: 28px; padding: 84px 24px; }
+  .thought-index { font-size: 54px; }
 }
 </style>

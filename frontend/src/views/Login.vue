@@ -1,139 +1,19 @@
 <template>
   <div class="login-page">
-    <h1>后端登录</h1>
-
-    <form class="login-form" @submit.prevent="handleLogin">
-      <div class="form-item">
-        <label>用户名</label>
-        <input
-          v-model="form.username"
-          type="text"
-          placeholder="请输入用户名"
-        />
-      </div>
-
-      <div class="form-item">
-        <label>密码</label>
-        <input
-          v-model="form.password"
-          type="password"
-          placeholder="请输入密码"
-        />
-      </div>
-
-      <button type="submit" :disabled="loading">
-        {{ loading ? "登录中..." : "登录" }}
-      </button>
-    </form>
-
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="success" class="success">{{ success }}</p>
+    <section class="login-card surface">
+      <div class="login-mark">M</div><p class="eyebrow">Private entrance</p><h1>回到我的书桌</h1><p>登录 Magnolia Content Studio，继续记录和整理。</p>
+      <form @submit.prevent="handleLogin"><div class="field"><label for="username">用户名</label><input id="username" v-model="form.username" autocomplete="username" required /></div><div class="field"><label for="password">密码</label><input id="password" v-model="form.password" type="password" autocomplete="current-password" required /></div><button class="primary-button" :disabled="loading">{{ loading ? "正在打开…" : "进入后台" }}</button></form>
+      <p v-if="error" class="error-text">{{ error }}</p><RouterLink to="/">← 返回网站</RouterLink>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import { login } from "../api/auth";
-
-const router = useRouter();
-
-const form = reactive({
-  username: "",
-  password: "",
-});
-
-const loading = ref(false);
-const error = ref("");
-const success = ref("");
-
-async function handleLogin() {
-  error.value = "";
-  success.value = "";
-
-  if (!form.username.trim() || !form.password.trim()) {
-    error.value = "请输入用户名和密码";
-    return;
-  }
-
-  loading.value = true;
-
-  try {
-    const response = await login({
-      username: form.username,
-      password: form.password,
-    });
-
-    console.log("登录接口返回：", response.data);
-
-    const token = response.data.access_token;
-
-    if (!token) {
-      error.value = "登录成功但没有拿到 token，请检查后端返回字段";
-      return;
-    }
-
-    localStorage.setItem("access_token", token);
-
-    console.log("保存后的 token：", localStorage.getItem("access_token"));
-
-    success.value = "登录成功，正在进入后台...";
-
-    setTimeout(() => {
-      router.push("/admin");
-    }, 500);
-  } catch (err) {
-    console.error("登录失败：", err);
-    error.value = "登录失败，请检查用户名或密码";
-  } finally {
-    loading.value = false;
-  }
-}
+import { reactive, ref } from "vue"; import { useRouter } from "vue-router"; import { login } from "../api/auth";
+const router = useRouter(); const form = reactive({ username: "", password: "" }); const loading = ref(false); const error = ref("");
+async function handleLogin() { loading.value = true; error.value = ""; try { const { data } = await login(form); localStorage.setItem("access_token", data.access_token); router.push("/admin"); } catch { error.value = "用户名或密码不正确。"; } finally { loading.value = false; } }
 </script>
 
 <style scoped>
-.login-page {
-  max-width: 420px;
-  margin: 60px auto;
-}
-
-.login-form {
-  display: grid;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.form-item {
-  display: grid;
-  gap: 8px;
-}
-
-.form-item input {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-button {
-  padding: 10px 14px;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.error {
-  color: #c0392b;
-  margin-top: 16px;
-}
-
-.success {
-  color: #27ae60;
-  margin-top: 16px;
-}
+.login-page { min-height: calc(100svh - 68px); padding: 70px 20px; display: grid; place-items: center; }.login-card { width: min(440px, 100%); padding: 42px; text-align: center; }.login-mark { width: 68px; height: 68px; display: grid; place-items: center; margin: 0 auto 22px; border-radius: 50%; color: #fff; background: var(--rose-600); font: 30px Georgia, serif; }.login-card h1 { margin: 0; font: 500 36px Georgia, "Songti SC", serif; }.login-card > p:not(.eyebrow):not(.error-text) { color: var(--muted); line-height: 1.7; }.login-card form { display: grid; gap: 17px; margin: 28px 0 18px; text-align: left; }.login-card form button { margin-top: 4px; }.login-card > a { color: var(--muted); font-size: 12px; text-decoration: none; }
 </style>

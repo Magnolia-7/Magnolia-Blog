@@ -96,3 +96,7 @@ Thumbs.db
 # =====================
 frontend/public/
 frontend/.vscode
+
+# Local media storage (production should mount this as persistent data)
+backend/data/uploads/
+!backend/data/uploads/.gitkeep

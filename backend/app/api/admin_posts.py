@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -31,7 +33,11 @@ def create_post(
             detail="status 必须是 draft 或 published",
         )
     
-    post = Post(**post_data.model_dump())
+    values = post_data.model_dump()
+    values["summary"] = values.get("summary") or ""
+    if values["status"] == "published" and not values.get("published_at"):
+        values["published_at"] = datetime.now()
+    post = Post(**values)
 
     db.add(post)
     db.commit()
@@ -88,6 +94,9 @@ def update_post(
             status_code= status.HTTP_400_BAD_REQUEST,
             detail="status 必须是 draft 或 published",
         )
+
+    if update_date.get("status") == "published" and not post.published_at:
+        update_date["published_at"] = datetime.now()
     
     for field, value in update_date.items():
         setattr(post, field, value)
