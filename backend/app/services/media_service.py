@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -10,7 +11,10 @@ from app.core.config import settings
 from app.services.storage import StorageBackend
 
 
-ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"}
+# Pillow may identify some valid iPhone JPEG files as MPO because they contain
+# an MPF/multi-picture index. The primary frame is still safe to process just
+# like a regular JPEG.
+ALLOWED_FORMATS = {"JPEG", "MPO", "PNG", "WEBP"}
 
 
 def _encode_webp(image: Image.Image, max_edge: int, quality: int) -> tuple[bytes, int, int]:
@@ -32,6 +36,21 @@ async def process_and_store_image(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"图片不能超过 {settings.MAX_UPLOAD_SIZE_MB} MB",
         )
+
+    original_name = Path(upload.filename or "image").name[:255]
+    return await asyncio.to_thread(
+        _process_and_store_image_bytes,
+        raw,
+        original_name,
+        storage,
+    )
+
+
+def _process_and_store_image_bytes(
+    raw: bytes,
+    original_name: str,
+    storage: StorageBackend,
+) -> dict:
 
     try:
         image = Image.open(BytesIO(raw))
@@ -72,7 +91,7 @@ async def process_and_store_image(
         "storage_provider": storage.provider,
         "object_key": object_key,
         "thumbnail_key": thumbnail_key,
-        "original_name": Path(upload.filename or "image").name[:255],
+        "original_name": original_name,
         "mime_type": "image/webp",
         "width": width,
         "height": height,
