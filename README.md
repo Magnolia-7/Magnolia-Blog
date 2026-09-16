@@ -90,7 +90,20 @@ MAX_UPLOAD_SIZE_MB=10
 - 生成列表缩略图
 - 保存可迁移的媒体元数据
 
-Cloudflare R2 计划在 2.0.1 接入。业务层已经通过 `StorageBackend` 隔离存储实现，文章、图书馆和相册无需重写。
+### Cloudflare R2
+
+生产环境可以切换到 Cloudflare R2，新上传的图片和缩略图会直接保存到 R2：
+
+```env
+STORAGE_DRIVER=r2
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key_id
+R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
+R2_BUCKET_NAME=magnolia-blog-images
+R2_PUBLIC_BASE_URL=https://img.magnolianook.com
+```
+
+R2 密钥只能保存在服务器的 `backend/.env`，不要写进前端或提交到 Git。切换后，数据库中已有的本地图片仍继续使用 `/media/`，只有新上传图片进入 R2，因此不要删除原上传目录或 Nginx 的 `/media/` 配置。
 
 ## 上线前检查
 

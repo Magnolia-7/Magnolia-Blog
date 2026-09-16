@@ -58,8 +58,15 @@ async def process_and_store_image(
     object_key = f"{prefix}/{stem}.webp"
     thumbnail_key = f"{prefix}/{stem}-thumb.webp"
 
-    stored = storage.put(object_key, full_bytes)
-    storage.put(thumbnail_key, thumb_bytes)
+    stored = storage.put(object_key, full_bytes, content_type="image/webp")
+    try:
+        storage.put(thumbnail_key, thumb_bytes, content_type="image/webp")
+    except Exception:
+        try:
+            storage.delete(object_key)
+        except Exception:
+            pass
+        raise
 
     return {
         "storage_provider": storage.provider,
