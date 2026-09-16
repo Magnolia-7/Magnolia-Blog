@@ -120,6 +120,14 @@ class LibraryItemResponse(LibraryItemBase):
     model_config = {"from_attributes": True}
 
 
+class PaginatedLibraryResponse(BaseModel):
+    items: list[LibraryItemResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
 class PhotoBase(BaseModel):
     media_id: int | None = None
     image_url: str

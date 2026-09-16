@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin
@@ -27,6 +28,7 @@ from app.schemas.content import (
     LearningNodeResponse,
     LearningNodeUpdate,
     LibraryItemCreate,
+    PaginatedLibraryResponse,
     LibraryItemResponse,
     LibraryItemUpdate,
     PhotoCreate,
@@ -125,9 +127,39 @@ def delete_learning(item_id: int, db: Session = Depends(get_db), admin: AdminUse
     return _delete(db, LearningNode, item_id)
 
 
-@router.get("/library", response_model=list[LibraryItemResponse])
-def list_library(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return db.query(LibraryItem).order_by(LibraryItem.sort_order, LibraryItem.id.desc()).all()
+@router.get("/library", response_model=PaginatedLibraryResponse)
+def list_library(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=12, ge=1, le=50),
+    item_type: str | None = Query(default=None, pattern="^(book|movie|anime)$"),
+    item_status: str | None = Query(default=None, alias="status", pattern="^(wishlist|reading|completed)$"),
+    keyword: str | None = Query(default=None, max_length=100),
+    db: Session = Depends(get_db),
+    admin: AdminUser = Depends(get_current_admin),
+):
+    query = db.query(LibraryItem)
+    if item_type:
+        query = query.filter(LibraryItem.item_type == item_type)
+    if item_status:
+        query = query.filter(LibraryItem.status == item_status)
+    if keyword and keyword.strip():
+        pattern = f"%{keyword.strip()}%"
+        query = query.filter(or_(
+            LibraryItem.title.ilike(pattern),
+            LibraryItem.note.ilike(pattern),
+        ))
+
+    total = query.count()
+    items = query.order_by(
+        LibraryItem.sort_order, LibraryItem.id.desc()
+    ).offset((page - 1) * page_size).limit(page_size).all()
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+    }
 
 
 @router.post("/library", response_model=LibraryItemResponse)

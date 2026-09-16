@@ -12,6 +12,7 @@ export const getChangelog = () => request.get("/api/content/changelog");
 const adminBase = "/api/admin/content";
 
 export const getAdminResource = (resource) => request.get(`${adminBase}/${resource}`);
+export const getAdminLibrary = (params = {}) => request.get(`${adminBase}/library`, { params });
 export const createAdminResource = (resource, data) => request.post(`${adminBase}/${resource}`, data);
 export const updateAdminResource = (resource, id, data) => request.patch(`${adminBase}/${resource}/${id}`, data);
 export const deleteAdminResource = (resource, id) => request.delete(`${adminBase}/${resource}/${id}`);
