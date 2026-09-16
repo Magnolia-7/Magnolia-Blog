@@ -12,7 +12,7 @@
     <section v-else-if="activeTab !== 'album'" class="shelf-grid">
       <a v-for="item in filteredItems" :key="item.id" class="shelf-item" :href="item.external_url || undefined" :target="item.external_url ? '_blank' : undefined" rel="noopener noreferrer">
         <div class="book-cover"><img v-if="item.cover_image" :src="item.cover_image" :alt="item.title" loading="lazy" /><span v-else>{{ item.title.slice(0, 1) }}</span></div>
-        <div><small>{{ statusLabel(item.status) }}<template v-if="item.rating"> · {{ item.rating }}/10</template></small><h2>{{ item.title }}</h2><p>{{ item.note || "还没有写下感想。" }}</p></div>
+        <div><small>{{ statusLabel(item.status) }}<template v-if="item.rating"> · {{ item.rating }}/10</template></small><h2>{{ item.title }}</h2><p v-if="item.note">{{ item.note }}</p></div>
       </a>
     </section>
     <div v-else-if="!albums.length" class="state-card">相册正在等待第一张照片。</div>
