@@ -12,8 +12,8 @@ export function searchPosts(params = {}){
   return request.get('/api/search/', { params });
 }
 
-export function getAdminPosts() {
-  return request.get("/api/admin/posts");
+export function getAdminPosts(params = {}) {
+  return request.get("/api/admin/posts", { params });
 }
 
 export function createAdminPost(data) {

@@ -1,13 +1,14 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin
 from app.core.database import get_db
 from app.models.admin_user import AdminUser
 from app.models.post import Post
-from app.schemas.post import PostCreate, PostResponse, PostUpdate
+from app.schemas.post import PaginatedPostResponse, PostCreate, PostResponse, PostUpdate
 
 router = APIRouter(
     prefix="/api/admin/posts",
@@ -45,13 +46,40 @@ def create_post(
 
     return post
 # 获取后台文章列表
-@router.get("/", response_model=list[PostResponse])
+@router.get("/", response_model=PaginatedPostResponse)
 def get_admin_posts(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=50),
+    category: str | None = Query(default=None, pattern="^(life|study)$"),
+    post_status: str | None = Query(default=None, alias="status", pattern="^(draft|published)$"),
+    keyword: str | None = Query(default=None, max_length=100),
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    posts = db.query(Post).order_by(Post.created_at.desc()).all()
-    return posts
+    query = db.query(Post)
+    if category:
+        query = query.filter(Post.category == category)
+    if post_status:
+        query = query.filter(Post.status == post_status)
+    if keyword and keyword.strip():
+        pattern = f"%{keyword.strip()}%"
+        query = query.filter(or_(
+            Post.title.ilike(pattern),
+            Post.summary.ilike(pattern),
+            Post.tags.ilike(pattern),
+        ))
+
+    total = query.count()
+    posts = query.order_by(Post.created_at.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+    return {
+        "items": posts,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+    }
 # 后台文章详情
 @router.get("/{post_id}", response_model=PostResponse)
 def get_admin_post_detail(
