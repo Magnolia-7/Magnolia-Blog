@@ -52,6 +52,7 @@ const menuOpen = ref(false);
 const navItems = [
   { to: "/", label: "主页" },
   { to: "/about", label: "关于" },
+  { to: "/showcase", label: "作品" },
   { to: "/records", label: "记录" },
   { to: "/library", label: "图书馆" },
   { to: "/guestbook", label: "留言" },

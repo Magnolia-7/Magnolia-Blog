@@ -1,7 +1,20 @@
 from datetime import date, datetime
 from typing import Literal
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+def _http_url(value: str | None) -> str | None:
+    if value is None:
+        return None
+    value = str(value).strip()
+    if not value:
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("链接必须是完整的 http 或 https 地址")
+    return value
 
 
 class SocialLinkBase(BaseModel):
@@ -53,6 +66,80 @@ class TechStackUpdate(BaseModel):
 
 class TechStackResponse(TechStackBase):
     id: int
+    model_config = {"from_attributes": True}
+
+
+class ProjectBase(BaseModel):
+    title: str = Field(..., min_length=1, max_length=160)
+    description: str = Field(..., min_length=1, max_length=3000)
+    category: str = Field(default="其他", min_length=1, max_length=80)
+    tags: str | None = Field(default=None, max_length=500)
+    github_url: str | None = Field(default=None, max_length=500)
+    demo_url: str | None = Field(default=None, max_length=500)
+    status: Literal["building", "active", "completed", "archived"] = "active"
+    featured: bool = False
+    sort_order: int = 0
+    enabled: bool = True
+
+    _validate_urls = field_validator("github_url", "demo_url", mode="before")(_http_url)
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=160)
+    description: str | None = Field(default=None, min_length=1, max_length=3000)
+    category: str | None = Field(default=None, min_length=1, max_length=80)
+    tags: str | None = Field(default=None, max_length=500)
+    github_url: str | None = Field(default=None, max_length=500)
+    demo_url: str | None = Field(default=None, max_length=500)
+    status: Literal["building", "active", "completed", "archived"] | None = None
+    featured: bool | None = None
+    sort_order: int | None = None
+    enabled: bool | None = None
+
+    _validate_urls = field_validator("github_url", "demo_url", mode="before")(_http_url)
+
+
+class ProjectResponse(ProjectBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    model_config = {"from_attributes": True}
+
+
+class FriendLinkBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    url: str = Field(..., min_length=1, max_length=500)
+    description: str | None = Field(default=None, max_length=300)
+    avatar_url: str | None = Field(default=None, max_length=500)
+    sort_order: int = 0
+    enabled: bool = True
+
+    _validate_urls = field_validator("url", "avatar_url", mode="before")(_http_url)
+
+
+class FriendLinkCreate(FriendLinkBase):
+    pass
+
+
+class FriendLinkUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    url: str | None = Field(default=None, min_length=1, max_length=500)
+    description: str | None = Field(default=None, max_length=300)
+    avatar_url: str | None = Field(default=None, max_length=500)
+    sort_order: int | None = None
+    enabled: bool | None = None
+
+    _validate_urls = field_validator("url", "avatar_url", mode="before")(_http_url)
+
+
+class FriendLinkResponse(FriendLinkBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
     model_config = {"from_attributes": True}
 
 

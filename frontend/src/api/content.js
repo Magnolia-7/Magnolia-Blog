@@ -2,6 +2,8 @@ import request from "./request";
 
 export const getSocialLinks = () => request.get("/api/content/social-links");
 export const getTechStacks = () => request.get("/api/content/tech-stacks");
+export const getProjects = () => request.get("/api/content/projects");
+export const getFriendLinks = () => request.get("/api/content/friend-links");
 export const getLearningNodes = () => request.get("/api/content/learning");
 export const getLibraryItems = (params = {}) => request.get("/api/content/library", { params });
 export const getAlbums = () => request.get("/api/content/albums");

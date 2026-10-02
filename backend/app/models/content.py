@@ -38,6 +38,38 @@ class TechStack(Base):
     enabled = Column(Boolean, nullable=False, default=True)
 
 
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(160), nullable=False)
+    description = Column(Text, nullable=False)
+    category = Column(String(80), nullable=False, default="其他", index=True)
+    tags = Column(String(500), nullable=True)
+    github_url = Column(String(500), nullable=True)
+    demo_url = Column(String(500), nullable=True)
+    status = Column(String(20), nullable=False, default="active", index=True)
+    featured = Column(Boolean, nullable=False, default=False)
+    sort_order = Column(Integer, nullable=False, default=0)
+    enabled = Column(Boolean, nullable=False, default=True, index=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class FriendLink(Base):
+    __tablename__ = "friend_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    url = Column(String(500), nullable=False)
+    description = Column(String(300), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    sort_order = Column(Integer, nullable=False, default=0)
+    enabled = Column(Boolean, nullable=False, default=True, index=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
 class LearningNode(Base):
     __tablename__ = "learning_nodes"
 

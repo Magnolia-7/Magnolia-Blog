@@ -10,6 +10,7 @@ import Admin from "../views/Admin.vue";
 import Library from "../views/Library.vue";
 import Guestbook from "../views/Guestbook.vue";
 import Changelog from "../views/Changelog.vue";
+import Showcase from "../views/Showcase.vue";
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
     path: '/changelog',
     name: 'Changelog',
     component: Changelog
+  },
+  {
+    path: '/showcase',
+    name: 'Showcase',
+    component: Showcase
   },
   {
     path: '/login',

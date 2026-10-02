@@ -8,10 +8,12 @@ from app.models.admin_user import AdminUser
 from app.models.content import (
     Album,
     ChangelogEntry,
+    FriendLink,
     GuestbookMessage,
     LearningNode,
     LibraryItem,
     Photo,
+    Project,
     SocialLink,
     TechStack,
 )
@@ -22,6 +24,9 @@ from app.schemas.content import (
     ChangelogCreate,
     ChangelogResponse,
     ChangelogUpdate,
+    FriendLinkCreate,
+    FriendLinkResponse,
+    FriendLinkUpdate,
     GuestbookResponse,
     GuestbookUpdate,
     LearningNodeCreate,
@@ -33,6 +38,9 @@ from app.schemas.content import (
     LibraryItemUpdate,
     PhotoCreate,
     PhotoResponse,
+    ProjectCreate,
+    ProjectResponse,
+    ProjectUpdate,
     SocialLinkCreate,
     SocialLinkResponse,
     SocialLinkUpdate,
@@ -105,6 +113,48 @@ def update_tech_stack(item_id: int, payload: TechStackUpdate, db: Session = Depe
 @router.delete("/tech-stacks/{item_id}")
 def delete_tech_stack(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
     return _delete(db, TechStack, item_id)
+
+
+@router.get("/projects", response_model=list[ProjectResponse])
+def list_projects(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return db.query(Project).order_by(
+        Project.featured.desc(), Project.sort_order, Project.id.desc()
+    ).all()
+
+
+@router.post("/projects", response_model=ProjectResponse)
+def create_project(payload: ProjectCreate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    item = Project(**payload.model_dump()); db.add(item); db.commit(); db.refresh(item); return item
+
+
+@router.patch("/projects/{item_id}", response_model=ProjectResponse)
+def update_project(item_id: int, payload: ProjectUpdate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return _update(db, _get_or_404(db, Project, item_id), payload)
+
+
+@router.delete("/projects/{item_id}")
+def delete_project(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return _delete(db, Project, item_id)
+
+
+@router.get("/friend-links", response_model=list[FriendLinkResponse])
+def list_friend_links(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return db.query(FriendLink).order_by(FriendLink.sort_order, FriendLink.id).all()
+
+
+@router.post("/friend-links", response_model=FriendLinkResponse)
+def create_friend_link(payload: FriendLinkCreate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    item = FriendLink(**payload.model_dump()); db.add(item); db.commit(); db.refresh(item); return item
+
+
+@router.patch("/friend-links/{item_id}", response_model=FriendLinkResponse)
+def update_friend_link(item_id: int, payload: FriendLinkUpdate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return _update(db, _get_or_404(db, FriendLink, item_id), payload)
+
+
+@router.delete("/friend-links/{item_id}")
+def delete_friend_link(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
+    return _delete(db, FriendLink, item_id)
 
 
 @router.get("/learning", response_model=list[LearningNodeResponse])

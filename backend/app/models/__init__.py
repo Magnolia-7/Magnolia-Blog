@@ -4,10 +4,12 @@ from app.models.about import About
 from app.models.content import (
     Album,
     ChangelogEntry,
+    FriendLink,
     GuestbookMessage,
     LearningNode,
     LibraryItem,
     Photo,
+    Project,
     SocialLink,
     TechStack,
 )

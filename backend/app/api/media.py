@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -11,10 +13,11 @@ from app.models.media import MediaAsset
 from app.models.post import Post
 from app.schemas.media import MediaResponse
 from app.services.media_service import process_and_store_image
-from app.services.storage import get_storage
+from app.services.storage import StorageBackendError, get_storage
 
 
 router = APIRouter(prefix="/api/admin/media", tags=["Admin Media"])
+logger = logging.getLogger(__name__)
 
 
 def serialize_media(asset: MediaAsset) -> dict:
@@ -41,8 +44,15 @@ async def upload_image(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    storage = get_storage()
-    data = await process_and_store_image(file, storage)
+    try:
+        storage = get_storage()
+        data = await process_and_store_image(file, storage)
+    except StorageBackendError as exc:
+        logger.exception("Image storage upload failed")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
     asset = MediaAsset(**data)
     db.add(asset)
     try:

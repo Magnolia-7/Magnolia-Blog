@@ -10,6 +10,10 @@ from botocore.exceptions import BotoCoreError, ClientError
 from app.core.config import settings
 
 
+class StorageBackendError(RuntimeError):
+    """A safe, user-facing error raised by a storage provider."""
+
+
 @dataclass
 class StoredObject:
     key: str
@@ -87,7 +91,13 @@ class R2StorageBackend(StorageBackend):
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
             region_name="auto",
-            config=Config(signature_version="s3v4"),
+            config=Config(
+                signature_version="s3v4",
+                connect_timeout=10,
+                read_timeout=30,
+                retries={"max_attempts": 3, "mode": "standard"},
+                tcp_keepalive=True,
+            ),
         )
 
     def put(
@@ -104,15 +114,25 @@ class R2StorageBackend(StorageBackend):
                 ContentType=content_type,
                 CacheControl="public, max-age=2592000",
             )
-        except (BotoCoreError, ClientError) as exc:
-            raise RuntimeError(f"R2 上传失败：{key}") from exc
+        except ClientError as exc:
+            error = exc.response.get("Error", {})
+            code = error.get("Code", "Unknown")
+            message = error.get("Message", "Cloudflare R2 拒绝了上传请求")
+            raise StorageBackendError(f"R2 上传失败（{code}）：{message}") from exc
+        except BotoCoreError as exc:
+            raise StorageBackendError(f"无法连接 Cloudflare R2：{exc}") from exc
         return StoredObject(key=key, size_bytes=len(content))
 
     def delete(self, key: str) -> None:
         try:
             self.client.delete_object(Bucket=self.bucket_name, Key=key)
-        except (BotoCoreError, ClientError) as exc:
-            raise RuntimeError(f"R2 删除失败：{key}") from exc
+        except ClientError as exc:
+            error = exc.response.get("Error", {})
+            code = error.get("Code", "Unknown")
+            message = error.get("Message", "Cloudflare R2 拒绝了删除请求")
+            raise StorageBackendError(f"R2 删除失败（{code}）：{message}") from exc
+        except BotoCoreError as exc:
+            raise StorageBackendError(f"无法连接 Cloudflare R2：{exc}") from exc
 
     def url_for(self, key: str | None) -> str | None:
         if not key:
@@ -134,7 +154,7 @@ def _get_storage(driver: str) -> StorageBackend:
         }
         missing = [name for name, value in values.items() if not value]
         if missing:
-            raise RuntimeError(f"R2 配置不完整，缺少：{', '.join(missing)}")
+            raise StorageBackendError(f"R2 配置不完整，缺少：{', '.join(missing)}")
         return R2StorageBackend(
             account_id=settings.R2_ACCOUNT_ID,
             access_key_id=settings.R2_ACCESS_KEY_ID,
@@ -142,7 +162,7 @@ def _get_storage(driver: str) -> StorageBackend:
             bucket_name=settings.R2_BUCKET_NAME,
             public_base_url=settings.R2_PUBLIC_BASE_URL,
         )
-    raise RuntimeError(
+    raise StorageBackendError(
         f"不支持的图片存储驱动：{driver}"
     )
 

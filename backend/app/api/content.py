@@ -9,19 +9,23 @@ from app.core.database import get_db
 from app.models.content import (
     Album,
     ChangelogEntry,
+    FriendLink,
     GuestbookMessage,
     LearningNode,
     LibraryItem,
+    Project,
     SocialLink,
     TechStack,
 )
 from app.schemas.content import (
     AlbumResponse,
     ChangelogResponse,
+    FriendLinkResponse,
     GuestbookCreate,
     GuestbookResponse,
     LearningNodeResponse,
     LibraryItemResponse,
+    ProjectResponse,
     SocialLinkResponse,
     TechStackResponse,
 )
@@ -43,6 +47,20 @@ def get_social_links(db: Session = Depends(get_db)):
 def get_tech_stacks(db: Session = Depends(get_db)):
     return db.query(TechStack).filter(TechStack.enabled.is_(True)).order_by(
         TechStack.sort_order, TechStack.id
+    ).all()
+
+
+@router.get("/projects", response_model=list[ProjectResponse])
+def get_projects(db: Session = Depends(get_db)):
+    return db.query(Project).filter(Project.enabled.is_(True)).order_by(
+        Project.featured.desc(), Project.sort_order, Project.id.desc()
+    ).all()
+
+
+@router.get("/friend-links", response_model=list[FriendLinkResponse])
+def get_friend_links(db: Session = Depends(get_db)):
+    return db.query(FriendLink).filter(FriendLink.enabled.is_(True)).order_by(
+        FriendLink.sort_order, FriendLink.id
     ).all()
 
 

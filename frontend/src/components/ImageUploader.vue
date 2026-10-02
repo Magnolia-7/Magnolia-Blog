@@ -30,7 +30,11 @@ async function uploadFiles(files) {
       const { data } = await uploadImage(file, (event) => { if (event.total) progress.value = Math.round(event.loaded / event.total * 100); });
       emit("uploaded", data);
     }
-  } catch (err) { error.value = err.response?.data?.detail || "图片上传失败，请检查格式和大小。"; }
+  } catch (err) {
+    if (err.code === "ECONNABORTED") error.value = "图片上传超时，请稍后重试。";
+    else if (!err.response) error.value = "无法连接上传服务，请检查后端是否正常运行。";
+    else error.value = err.response.data?.detail || `图片上传失败（HTTP ${err.response.status}）。`;
+  }
   finally { uploading.value = false; dragging.value = false; progress.value = 0; if (inputRef.value) inputRef.value.value = ""; }
 }
 function handleFiles(event) { uploadFiles(event.target.files); }
