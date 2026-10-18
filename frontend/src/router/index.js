@@ -11,6 +11,8 @@ import Library from "../views/Library.vue";
 import Guestbook from "../views/Guestbook.vue";
 import Changelog from "../views/Changelog.vue";
 import Showcase from "../views/Showcase.vue";
+import TreeLifePrivacy from "../views/TreeLifePrivacy.vue";
+import TreeLifeSupport from "../views/TreeLifeSupport.vue";
 
 const routes = [
   {
@@ -59,6 +61,24 @@ const routes = [
     component: Showcase
   },
   {
+    path: '/treelife/privacy',
+    alias: '/privacy',
+    name: 'TreeLifePrivacy',
+    component: TreeLifePrivacy,
+    meta: {
+      title: 'TreeLife 隐私政策',
+    },
+  },
+  {
+    path: '/treelife/support',
+    alias: '/support',
+    name: 'TreeLifeSupport',
+    component: TreeLifeSupport,
+    meta: {
+      title: 'TreeLife 技术支持',
+    },
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login
@@ -87,6 +107,12 @@ router.beforeEach((to) => {
   }
 
   return true;
+});
+
+router.afterEach((to) => {
+  document.title = to.meta.title
+    ? `${to.meta.title} · Magnolia Nook`
+    : 'Magnolia Nook · 我的小窝';
 });
 
 export default router;

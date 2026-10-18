@@ -36,6 +36,8 @@
       <div class="footer-flower">✦</div>
       <p>愿这里像一朵慢慢盛开的白玉兰，安静记录每一次成长。</p>
       <div class="footer-links">
+        <RouterLink to="/treelife/privacy">TreeLife 隐私政策</RouterLink>
+        <RouterLink to="/treelife/support">TreeLife 技术支持</RouterLink>
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">闽ICP备2026014322号-1</a>
         <a href="https://beian.mps.gov.cn/#/query/webSearch?code=35082302000285" target="_blank" rel="noopener noreferrer">
           闽公网安备35082302000285号

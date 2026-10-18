@@ -1,0 +1,112 @@
+.treelife-info-page {
+  --tree-sage: #6f7f6d;
+  --tree-sage-deep: #4f6250;
+  --tree-sage-pale: #e8eee4;
+}
+
+.treelife-hero {
+  position: relative;
+  min-height: 430px;
+  padding: clamp(44px, 7vw, 82px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 84% 20%, rgba(255, 255, 255, .82) 0 5%, transparent 5.3%),
+    radial-gradient(circle at 76% 32%, rgba(255, 255, 255, .55) 0 3%, transparent 3.3%),
+    linear-gradient(142deg, rgba(232, 238, 228, .96), rgba(250, 240, 239, .95));
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.treelife-hero::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -36px;
+  width: min(42vw, 410px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(111, 127, 109, .18);
+  border-radius: 44% 56% 62% 38%;
+  transform: rotate(18deg);
+  box-shadow:
+    -52px 72px 0 -1px rgba(255, 255, 255, .3),
+    -112px 126px 0 -1px rgba(111, 127, 109, .08);
+}
+
+.treelife-hero > * { position: relative; z-index: 1; }
+.treelife-badge { align-self: flex-start; margin-bottom: auto; padding: 9px 14px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(79, 98, 80, .15); border-radius: 999px; color: var(--tree-sage-deep); font-size: 13px; font-weight: 750; text-decoration: none; background: rgba(255, 255, 255, .5); }
+.treelife-badge span { color: var(--rose-500); }
+.treelife-hero .eyebrow { color: var(--tree-sage-deep); }
+.treelife-hero h1 { max-width: 780px; margin: 0; font: 500 clamp(46px, 8vw, 86px)/1.05 Georgia, "Songti SC", serif; letter-spacing: -.055em; }
+.hero-copy { max-width: 680px; margin: 24px 0 0; color: var(--muted-strong); font-size: clamp(16px, 2vw, 19px); line-height: 1.9; }
+.updated-at { margin: 22px 0 0; color: var(--muted); font-size: 13px; }
+
+.treelife-info-layout { margin-top: 30px; display: grid; grid-template-columns: minmax(240px, .38fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.summary-card { position: sticky; top: 92px; padding: 30px; }
+.summary-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--tree-sage); font-size: 28px; }
+.summary-card h2 { margin: 22px 0 18px; font: 500 27px Georgia, "Songti SC", serif; }
+.summary-card ul { margin: 0; padding: 0; display: grid; gap: 13px; list-style: none; }
+.summary-card li { position: relative; padding-left: 21px; color: var(--muted-strong); line-height: 1.65; }
+.summary-card li::before { content: ""; position: absolute; left: 0; top: .65em; width: 7px; height: 7px; border-radius: 50% 50% 48% 52%; background: var(--tree-sage); transform: rotate(-30deg); }
+
+.policy-content { padding: clamp(28px, 5vw, 56px); }
+.policy-content section { display: grid; grid-template-columns: 52px 1fr; gap: 24px; padding: 32px 0; border-bottom: 1px solid var(--line); }
+.policy-content section:first-child { padding-top: 0; }
+.policy-content section:last-child { padding-bottom: 0; border-bottom: 0; }
+.section-number { color: var(--rose-500); font: 14px Georgia, serif; letter-spacing: .08em; }
+.policy-content h2, .support-intro h2, .section-heading h2, .support-callout h2 { margin: 0; font: 500 clamp(24px, 3vw, 32px) Georgia, "Songti SC", serif; }
+.policy-content p { margin: 15px 0 0; color: var(--muted-strong); line-height: 1.95; }
+.contact-link { margin-top: 18px; padding: 14px 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--rose-200); color: var(--rose-700); font-weight: 700; text-decoration: none; }
+
+.related-page { margin-top: 24px; padding: 24px 30px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.related-page .eyebrow { margin-bottom: 6px; }
+.related-page strong { font: 500 19px Georgia, "Songti SC", serif; }
+.related-page a { padding: 12px 17px; border-radius: 999px; color: #fff; background: var(--tree-sage); text-decoration: none; white-space: nowrap; }
+
+.support-hero { min-height: 480px; }
+.primary-contact { width: min(100%, 510px); margin-top: 30px; padding: 17px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid rgba(79, 98, 80, .14); border-radius: 18px; color: var(--tree-sage-deep); background: rgba(255, 255, 255, .64); text-decoration: none; box-shadow: var(--shadow-sm); }
+.primary-contact span { display: grid; gap: 5px; }
+.primary-contact small { color: var(--muted); font-size: 11px; letter-spacing: .12em; }
+.primary-contact strong { font-size: clamp(14px, 3vw, 17px); overflow-wrap: anywhere; }
+.primary-contact i { font: 24px Georgia, serif; }
+
+.support-intro { margin-top: 30px; padding: clamp(28px, 5vw, 46px); display: grid; grid-template-columns: .72fr 1fr; gap: 50px; align-items: end; }
+.support-intro .eyebrow { color: var(--tree-sage-deep); }
+.support-intro > p { margin: 0; color: var(--muted-strong); line-height: 1.9; }
+.faq-section { margin-top: 80px; }
+.section-heading { margin-bottom: 28px; }
+.section-heading .eyebrow { color: var(--tree-sage-deep); }
+.faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.faq-grid article { min-height: 230px; padding: 28px; }
+.faq-grid article > span { color: var(--rose-500); font: 14px Georgia, serif; }
+.faq-grid h3 { margin: 34px 0 12px; font: 500 22px Georgia, "Songti SC", serif; }
+.faq-grid p { margin: 0; color: var(--muted-strong); line-height: 1.85; }
+
+.support-callout { margin-top: 80px; padding: clamp(30px, 5vw, 54px); display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center; border-radius: 28px; color: #fff; background: linear-gradient(135deg, var(--tree-sage), var(--tree-sage-deep)); box-shadow: var(--shadow-lg); }
+.callout-mark { width: 64px; height: 64px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .28); border-radius: 50% 50% 48% 52%; font: 28px Georgia, serif; transform: rotate(-7deg); }
+.support-callout .eyebrow { color: rgba(255, 255, 255, .7); }
+.support-callout p:last-child { margin: 10px 0 0; color: rgba(255, 255, 255, .78); line-height: 1.7; }
+.support-callout > a { padding: 13px 18px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 999px; color: #fff; text-decoration: none; white-space: nowrap; background: rgba(255, 255, 255, .1); }
+
+@media (max-width: 800px) {
+  .treelife-info-layout, .support-intro { grid-template-columns: 1fr; }
+  .summary-card { position: static; }
+  .faq-grid { grid-template-columns: 1fr; }
+  .support-callout { grid-template-columns: auto 1fr; }
+  .support-callout > a { grid-column: 1 / -1; text-align: center; }
+}
+
+@media (max-width: 560px) {
+  .treelife-hero { min-height: 410px; padding: 30px 24px; border-radius: 26px; }
+  .treelife-hero::after { width: 280px; opacity: .72; }
+  .treelife-hero h1 { font-size: 45px; }
+  .policy-content section { grid-template-columns: 1fr; gap: 12px; }
+  .related-page { align-items: flex-start; flex-direction: column; }
+  .related-page a { width: 100%; text-align: center; }
+  .faq-grid article { min-height: 0; }
+  .support-callout { grid-template-columns: 1fr; }
+  .callout-mark { width: 54px; height: 54px; }
+}
