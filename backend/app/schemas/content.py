@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Literal
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 def _http_url(value: str | None) -> str | None:
@@ -266,6 +266,30 @@ class GuestbookCreate(BaseModel):
     website: str | None = Field(default=None, max_length=500)
     content: str = Field(..., min_length=2, max_length=1000)
     company: str | None = Field(default=None, max_length=1, exclude=True)
+    message_type: Literal["message", "wish"] = "message"
+
+    _validate_website = field_validator("website", mode="before")(_http_url)
+
+    @field_validator("nickname", "content")
+    @classmethod
+    def strip_message(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("昵称和内容不能为空")
+        return value
+
+    @field_validator("content")
+    @classmethod
+    def content_length(cls, value):
+        if len(value) < 2:
+            raise ValueError("内容至少需要两个字符")
+        return value
+
+    @model_validator(mode="after")
+    def wish_length(self):
+        if self.message_type == "wish" and len(self.content) > 200:
+            raise ValueError("愿望最多 200 字")
+        return self
 
 
 class GuestbookUpdate(BaseModel):
@@ -278,6 +302,7 @@ class GuestbookResponse(BaseModel):
     nickname: str
     website: str | None
     content: str
+    message_type: Literal["message", "wish"]
     status: str
     admin_reply: str | None
     created_at: datetime

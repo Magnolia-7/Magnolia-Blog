@@ -143,6 +143,7 @@ class GuestbookMessage(Base):
     nickname = Column(String(80), nullable=False)
     website = Column(String(500), nullable=True)
     content = Column(Text, nullable=False)
+    message_type = Column(String(20), nullable=False, default="message", server_default="message")
     status = Column(String(20), nullable=False, default="pending", index=True)
     admin_reply = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())

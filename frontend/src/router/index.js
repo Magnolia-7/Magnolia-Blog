@@ -9,8 +9,9 @@ import Login from "../views/Login.vue";
 import Admin from "../views/Admin.vue";
 import Library from "../views/Library.vue";
 import Guestbook from "../views/Guestbook.vue";
-import Changelog from "../views/Changelog.vue";
-import Showcase from "../views/Showcase.vue";
+import Friends from "../views/Friends.vue";
+import { trackPage } from "../composables/site";
+
 import TreeLifePrivacy from "../views/TreeLifePrivacy.vue";
 import TreeLifeSupport from "../views/TreeLifeSupport.vue";
 
@@ -20,7 +21,7 @@ const routes = [
     name: 'Home',
     component: Home
   },
-  { 
+  {
     path: '/about',
     name: 'About',
     component: About
@@ -45,6 +46,7 @@ const routes = [
     name: 'Library',
     component: Library
   },
+  { path: '/friends', name: 'Friends', component: Friends },
   {
     path: '/guestbook',
     name: 'Guestbook',
@@ -52,13 +54,11 @@ const routes = [
   },
   {
     path: '/changelog',
-    name: 'Changelog',
-    component: Changelog
+    redirect: '/'
   },
   {
     path: '/showcase',
-    name: 'Showcase',
-    component: Showcase
+    redirect: '/library?tab=works'
   },
   {
     path: '/treelife/privacy',
@@ -83,7 +83,7 @@ const routes = [
     name: 'Login',
     component: Login
   },
-  { 
+  {
     path: '/admin',
     name: 'Admin',
     component: Admin,
@@ -109,10 +109,15 @@ router.beforeEach((to) => {
   return true;
 });
 
-router.afterEach((to) => {
+router.afterEach((to, from, failure) => {
+  if (failure) return;
+  if (to.path !== from.path || !from.matched.length) {
+    trackPage(to.path);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
   document.title = to.meta.title
-    ? `${to.meta.title} · Magnolia Nook`
-    : 'Magnolia Nook · 我的小窝';
+    ? `${to.meta.title} · Magnolia`
+    : 'Magnolia';
 });
 
 export default router;

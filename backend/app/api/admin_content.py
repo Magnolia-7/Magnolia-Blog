@@ -7,31 +7,22 @@ from app.core.database import get_db
 from app.models.admin_user import AdminUser
 from app.models.content import (
     Album,
-    ChangelogEntry,
     FriendLink,
     GuestbookMessage,
-    LearningNode,
     LibraryItem,
     Photo,
     Project,
     SocialLink,
-    TechStack,
 )
 from app.schemas.content import (
     AlbumCreate,
     AlbumResponse,
     AlbumUpdate,
-    ChangelogCreate,
-    ChangelogResponse,
-    ChangelogUpdate,
     FriendLinkCreate,
     FriendLinkResponse,
     FriendLinkUpdate,
     GuestbookResponse,
     GuestbookUpdate,
-    LearningNodeCreate,
-    LearningNodeResponse,
-    LearningNodeUpdate,
     LibraryItemCreate,
     PaginatedLibraryResponse,
     LibraryItemResponse,
@@ -44,9 +35,6 @@ from app.schemas.content import (
     SocialLinkCreate,
     SocialLinkResponse,
     SocialLinkUpdate,
-    TechStackCreate,
-    TechStackResponse,
-    TechStackUpdate,
 )
 
 
@@ -95,24 +83,8 @@ def delete_social_link(item_id: int, db: Session = Depends(get_db), admin: Admin
     return _delete(db, SocialLink, item_id)
 
 
-@router.get("/tech-stacks", response_model=list[TechStackResponse])
-def list_tech_stacks(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return db.query(TechStack).order_by(TechStack.sort_order, TechStack.id).all()
 
 
-@router.post("/tech-stacks", response_model=TechStackResponse)
-def create_tech_stack(payload: TechStackCreate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    item = TechStack(**payload.model_dump()); db.add(item); db.commit(); db.refresh(item); return item
-
-
-@router.patch("/tech-stacks/{item_id}", response_model=TechStackResponse)
-def update_tech_stack(item_id: int, payload: TechStackUpdate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _update(db, _get_or_404(db, TechStack, item_id), payload)
-
-
-@router.delete("/tech-stacks/{item_id}")
-def delete_tech_stack(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _delete(db, TechStack, item_id)
 
 
 @router.get("/projects", response_model=list[ProjectResponse])
@@ -157,24 +129,8 @@ def delete_friend_link(item_id: int, db: Session = Depends(get_db), admin: Admin
     return _delete(db, FriendLink, item_id)
 
 
-@router.get("/learning", response_model=list[LearningNodeResponse])
-def list_learning(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return db.query(LearningNode).order_by(LearningNode.sort_order, LearningNode.id).all()
 
 
-@router.post("/learning", response_model=LearningNodeResponse)
-def create_learning(payload: LearningNodeCreate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    item = LearningNode(**payload.model_dump()); db.add(item); db.commit(); db.refresh(item); return item
-
-
-@router.patch("/learning/{item_id}", response_model=LearningNodeResponse)
-def update_learning(item_id: int, payload: LearningNodeUpdate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _update(db, _get_or_404(db, LearningNode, item_id), payload)
-
-
-@router.delete("/learning/{item_id}")
-def delete_learning(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _delete(db, LearningNode, item_id)
 
 
 @router.get("/library", response_model=PaginatedLibraryResponse)
@@ -272,23 +228,3 @@ def update_guestbook(item_id: int, payload: GuestbookUpdate, db: Session = Depen
 @router.delete("/guestbook/{item_id}")
 def delete_guestbook(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
     return _delete(db, GuestbookMessage, item_id)
-
-
-@router.get("/changelog", response_model=list[ChangelogResponse])
-def list_changelog(db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return db.query(ChangelogEntry).order_by(ChangelogEntry.created_at.desc()).all()
-
-
-@router.post("/changelog", response_model=ChangelogResponse)
-def create_changelog(payload: ChangelogCreate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    item = ChangelogEntry(**payload.model_dump()); db.add(item); db.commit(); db.refresh(item); return item
-
-
-@router.patch("/changelog/{item_id}", response_model=ChangelogResponse)
-def update_changelog(item_id: int, payload: ChangelogUpdate, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _update(db, _get_or_404(db, ChangelogEntry, item_id), payload)
-
-
-@router.delete("/changelog/{item_id}")
-def delete_changelog(item_id: int, db: Session = Depends(get_db), admin: AdminUser = Depends(get_current_admin)):
-    return _delete(db, ChangelogEntry, item_id)
