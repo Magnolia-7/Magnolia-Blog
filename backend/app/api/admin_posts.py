@@ -22,10 +22,10 @@ def create_post(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    if post_data.category not in ["life", "study"]:
+    if post_data.category not in ["life", "study", "thought"]:
         raise HTTPException(
             status_code= status.HTTP_400_BAD_REQUEST,
-            detail="catagory 必须是 life 或 study",
+            detail="category 必须是 life、study 或 thought",
         )
     
     if post_data.status not in ["draft", "published"]:
@@ -50,7 +50,7 @@ def create_post(
 def get_admin_posts(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=50),
-    category: str | None = Query(default=None, pattern="^(life|study)$"),
+    category: str | None = Query(default=None, pattern="^(life|study|thought)$"),
     post_status: str | None = Query(default=None, alias="status", pattern="^(draft|published)$"),
     keyword: str | None = Query(default=None, max_length=100),
     db: Session = Depends(get_db),
@@ -111,10 +111,10 @@ def update_post(
     
     update_date = post_data.model_dump(exclude_unset=True)
 
-    if "category" in update_date and update_date["category"] not in ["life", "study"]:
+    if "category" in update_date and update_date["category"] not in ["life", "study", "thought"]:
         raise HTTPException(
             status_code= status.HTTP_400_BAD_REQUEST,
-            detail="catagory 必须是 life 或 study",
+            detail="category 必须是 life、study 或 thought",
         )
     
     if "status" in update_date and update_date["status"] not in ["draft", "published"]:

@@ -12,7 +12,7 @@ router = APIRouter(
 
 @router.get("/", response_model=PaginatedPostResponse)
 def get_posts(
-    category: str | None = Query(None, description="文章分类，life 或 study"),
+    category: str | None = Query(None, description="文章分类，life、study 或 thought"),
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(9, ge=1, le=50, description="每页数量"),
     db: Session = Depends(get_db),
@@ -20,10 +20,10 @@ def get_posts(
     query = db.query(Post).filter(Post.status == "published")
 
     if category is not None:
-        if category not in ["life", "study"]:
+        if category not in ["life", "study", "thought"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="category 必须是 life 或 study",
+                detail="category 必须是 life、study 或 thought",
             )
         query = query.filter(Post.category == category)
 

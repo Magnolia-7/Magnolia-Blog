@@ -5,7 +5,7 @@ export function getPosts(params = {}){
 }
 
 export function getPostDetail(id){
-  return request.get(`/api/posts/${id}/`);
+  return request.get(`/api/posts/${id}`);
 }
 
 export function searchPosts(params = {}){
@@ -13,11 +13,11 @@ export function searchPosts(params = {}){
 }
 
 export function getAdminPosts(params = {}) {
-  return request.get("/api/admin/posts", { params });
+  return request.get("/api/admin/posts/", { params });
 }
 
 export function createAdminPost(data) {
-  return request.post("/api/admin/posts", data);
+  return request.post("/api/admin/posts/", data);
 }
 
 export function updateAdminPost(id, data) {

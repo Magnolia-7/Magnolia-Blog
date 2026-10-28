@@ -5,7 +5,7 @@
     <form v-if="showEditor" class="editor-panel" @submit.prevent="savePost">
       <div class="form-grid two"><div class="field"><label>文章标题</label><input v-model="form.title" required maxlength="200" /></div><div class="field"><label>标签（逗号分隔）</label><input v-model="form.tags" placeholder="Vue, 学习记录" /></div></div>
       <div class="field"><label>摘要</label><textarea v-model="form.summary" rows="2"></textarea></div>
-      <div class="form-grid three"><div class="field"><label>分类</label><select v-model="form.category"><option value="life">生活记录</option><option value="study">学习笔记</option></select></div><div class="field"><label>状态</label><select v-model="form.status"><option value="draft">草稿</option><option value="published">已发布</option></select></div><div class="field"><label>发布时间</label><input v-model="form.published_at" type="datetime-local" /></div></div>
+      <div class="form-grid three"><div class="field"><label>分类</label><select v-model="form.category"><option value="life">记录贴</option><option value="study">技术贴</option><option value="thought">说说贴</option></select></div><div class="field"><label>状态</label><select v-model="form.status"><option value="draft">草稿</option><option value="published">已发布</option></select></div><div class="field"><label>发布时间</label><input v-model="form.published_at" type="datetime-local" /></div></div>
       <label class="check-row"><input v-model="form.is_pinned" type="checkbox" /> 置顶这篇文章</label>
       <div class="cover-field">
         <div class="field"><label>封面地址</label><input v-model="form.cover_image" placeholder="上传后自动填写，也可以从媒体库选择" /></div>
@@ -20,7 +20,7 @@
 
     <form class="admin-filters" @submit.prevent="applyFilters">
       <div class="field filter-keyword"><label>搜索文章</label><input v-model.trim="filterDraft.keyword" placeholder="输入标题、摘要或标签" /></div>
-      <div class="field"><label>分类</label><select v-model="filterDraft.category"><option value="">全部分类</option><option value="life">生活记录</option><option value="study">学习笔记</option></select></div>
+      <div class="field"><label>分类</label><select v-model="filterDraft.category"><option value="">全部分类</option><option value="life">记录贴</option><option value="study">技术贴</option><option value="thought">说说贴</option></select></div>
       <div class="field"><label>状态</label><select v-model="filterDraft.status"><option value="">全部状态</option><option value="draft">草稿</option><option value="published">已发布</option></select></div>
       <button class="primary-button" :disabled="loading">{{ loading ? "读取中…" : "筛选" }}</button><button class="secondary-button" type="button" :disabled="loading" @click="resetFilters">重置</button>
       <span class="result-count">共 {{ pagination.total }} 篇</span>
@@ -29,7 +29,7 @@
     <div v-if="loading" class="admin-empty">正在读取文章…</div>
     <div v-else-if="!posts.length" class="admin-empty">没有找到符合条件的文章。</div>
     <div v-else class="admin-list">
-      <article v-for="post in posts" :key="post.id"><img v-if="post.cover_image" :src="post.cover_image" :alt="post.title" /><div class="list-copy"><small>{{ post.category === "life" ? "生活记录" : "学习笔记" }} · {{ post.status === "published" ? "已发布" : "草稿" }}</small><h3>{{ post.title }}</h3><p>{{ post.summary || "没有摘要" }}</p></div><div class="row-actions"><button class="secondary-button" :disabled="deletingId !== null" @click="editPost(post)">编辑</button><button class="danger-button" :disabled="deletingId !== null" @click="removePost(post)">{{ deletingId === post.id ? "删除中…" : "删除" }}</button></div></article>
+      <article v-for="post in posts" :key="post.id"><img v-if="post.cover_image" :src="post.cover_image" :alt="post.title" /><div class="list-copy"><small>{{ ({ life: "记录贴", study: "技术贴", thought: "说说贴" })[post.category] }} · {{ post.status === "published" ? "已发布" : "草稿" }}</small><h3>{{ post.title }}</h3><p>{{ post.summary || "没有摘要" }}</p></div><div class="row-actions"><button class="secondary-button" :disabled="deletingId !== null" @click="editPost(post)">编辑</button><button class="danger-button" :disabled="deletingId !== null" @click="removePost(post)">{{ deletingId === post.id ? "删除中…" : "删除" }}</button></div></article>
     </div>
     <AdminPagination class="post-pagination" :page="pagination.page" :total-pages="pagination.totalPages" :loading="loading" label="文章分页" @change="loadPosts" />
   </section>

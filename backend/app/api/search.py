@@ -16,7 +16,7 @@ router = APIRouter(
 @router.get("/", response_model=list[PostResponse])
 def search_posts(
     q: str | None = Query(default=None, description="关键词"),
-    category: str | None = Query(default=None, pattern="^(life|study)$"),
+    category: str | None = Query(default=None, pattern="^(life|study|thought)$"),
     start_date: date | None = None,
     end_date: date | None = None,
     db: Session = Depends(get_db),

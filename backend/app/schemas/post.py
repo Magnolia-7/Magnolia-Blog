@@ -7,7 +7,7 @@ class PostBase(BaseModel):
     summary: str | None = None
     content: str = Field(..., min_length=1)
     cover_image: str | None = None
-    category: str = Field(..., description="life 或 study")
+    category: str = Field(..., description="life、study 或 thought")
     status: str = Field(default="draft", description="draft 或 published")
     tags: str | None = None
     is_pinned: bool = False

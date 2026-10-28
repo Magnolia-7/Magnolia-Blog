@@ -8,26 +8,20 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.content import (
     Album,
-    ChangelogEntry,
     FriendLink,
     GuestbookMessage,
-    LearningNode,
     LibraryItem,
     Project,
     SocialLink,
-    TechStack,
 )
 from app.schemas.content import (
     AlbumResponse,
-    ChangelogResponse,
     FriendLinkResponse,
     GuestbookCreate,
     GuestbookResponse,
-    LearningNodeResponse,
     LibraryItemResponse,
     ProjectResponse,
     SocialLinkResponse,
-    TechStackResponse,
 )
 
 
@@ -43,12 +37,6 @@ def get_social_links(db: Session = Depends(get_db)):
     ).all()
 
 
-@router.get("/tech-stacks", response_model=list[TechStackResponse])
-def get_tech_stacks(db: Session = Depends(get_db)):
-    return db.query(TechStack).filter(TechStack.enabled.is_(True)).order_by(
-        TechStack.sort_order, TechStack.id
-    ).all()
-
 
 @router.get("/projects", response_model=list[ProjectResponse])
 def get_projects(db: Session = Depends(get_db)):
@@ -63,10 +51,6 @@ def get_friend_links(db: Session = Depends(get_db)):
         FriendLink.sort_order, FriendLink.id
     ).all()
 
-
-@router.get("/learning", response_model=list[LearningNodeResponse])
-def get_learning_nodes(db: Session = Depends(get_db)):
-    return db.query(LearningNode).order_by(LearningNode.sort_order, LearningNode.id).all()
 
 
 @router.get("/library", response_model=list[LibraryItemResponse])
@@ -98,8 +82,9 @@ def create_guestbook_message(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    label = "愿望" if payload.message_type == "wish" else "留言"
     if payload.company:
-        return {"detail": "留言已提交，审核后显示"}
+        return {"detail": f"{label}已提交，审核后显示"}
 
     forwarded = request.headers.get("x-forwarded-for", "")
     client_key = forwarded.split(",")[0].strip() or (
@@ -118,17 +103,9 @@ def create_guestbook_message(
         nickname=payload.nickname.strip(),
         website=(payload.website or "").strip() or None,
         content=payload.content.strip(),
+        message_type=payload.message_type,
         status="pending",
     )
     db.add(message)
     db.commit()
-    return {"detail": "留言已提交，审核后显示"}
-
-
-@router.get("/changelog", response_model=list[ChangelogResponse])
-def get_changelog(db: Session = Depends(get_db)):
-    return db.query(ChangelogEntry).filter(
-        ChangelogEntry.status == "published"
-    ).order_by(
-        ChangelogEntry.published_at.desc(), ChangelogEntry.id.desc()
-    ).all()
+    return {"detail": f"{label}已提交，审核后显示"}

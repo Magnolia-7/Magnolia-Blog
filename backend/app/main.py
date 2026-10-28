@@ -11,6 +11,7 @@ from app.api.admin_about import router as admin_about_router
 from app.api.admin_content import router as admin_content_router
 from app.api.content import router as content_router
 from app.api.media import router as media_router
+from app.api.activity import router as activity_router, admin_router as admin_activity_router
 from app.core.config import settings
 
 app = FastAPI(title=settings.APP_NAME)
@@ -37,6 +38,8 @@ app.include_router(admin_about_router)
 app.include_router(admin_content_router)
 app.include_router(content_router)
 app.include_router(media_router)
+app.include_router(activity_router)
+app.include_router(admin_activity_router)
 
 if settings.STORAGE_DRIVER == "local":
     app.mount(

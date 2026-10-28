@@ -1,18 +1,20 @@
 <template>
   <div class="admin-page">
     <aside class="admin-sidebar">
-      <RouterLink to="/" class="admin-brand"><span>M</span><div><strong>Magnolia Nook</strong><small>Content Studio · 2.0</small></div></RouterLink>
+      <RouterLink to="/" class="admin-brand"><strong class="comic">ADMIN</strong></RouterLink>
       <nav>
-        <button v-for="item in tabs" :key="item.value" :class="{ active: activeTab === item.value }" @click="activeTab = item.value"><span>{{ item.icon }}</span>{{ item.label }}</button>
+        <button v-for="item in tabs" :key="item.value" :class="{ active: activeTab === item.value }" @click="activeTab = item.value"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }}</button>
       </nav>
       <div class="sidebar-foot"><RouterLink to="/" target="_blank">查看网站 ↗</RouterLink><button @click="logout">退出登录</button></div>
     </aside>
     <main class="admin-main">
-      <header class="admin-topbar"><div><small>MAGNOLIA CONTENT STUDIO</small><h1>{{ currentTitle }}</h1></div><div class="admin-status"><i></i> 已连接</div></header>
+      <header class="admin-topbar"><div><h1>{{ currentTitle }}</h1></div><div class="admin-status"><i></i> 已连接</div></header>
       <div class="admin-surface">
         <AdminPosts v-if="activeTab === 'posts'" />
         <AdminMedia v-else-if="activeTab === 'media'" />
         <AdminProfile v-else-if="activeTab === 'profile'" />
+        <AdminTimeLogs v-else-if="activeTab === 'time'" />
+        <AdminSite v-else-if="activeTab === 'site'" />
         <AdminShowcase v-else-if="activeTab === 'showcase'" />
         <AdminContent v-else />
       </div>
@@ -28,8 +30,10 @@ import AdminMedia from "../components/admin/AdminMedia.vue";
 import AdminProfile from "../components/admin/AdminProfile.vue";
 import AdminShowcase from "../components/admin/AdminShowcase.vue";
 import AdminContent from "../components/admin/AdminContent.vue";
+import AdminTimeLogs from "../components/admin/AdminTimeLogs.vue";
+import AdminSite from "../components/admin/AdminSite.vue";
 const router = useRouter(); const activeTab = ref("posts");
-const tabs = [{ value: "posts", label: "文章管理", icon: "✎" }, { value: "media", label: "媒体中心", icon: "▧" }, { value: "profile", label: "主页与关于", icon: "○" }, { value: "showcase", label: "作品与友链", icon: "◇" }, { value: "content", label: "内容模块", icon: "⌘" }];
+const tabs = [{ value: "posts", label: "文章管理", icon: "✎" }, { value: "time", label: "投入时间", icon: "◷" }, { value: "media", label: "媒体中心", icon: "▧" }, { value: "profile", label: "个人资料", icon: "○" }, { value: "site", label: "站点设置", icon: "▤" }, { value: "showcase", label: "作品集与友链", icon: "◇" }, { value: "content", label: "收藏与留言", icon: "⌘" }];
 const currentTitle = computed(() => tabs.find((item) => item.value === activeTab.value)?.label || "后台管理");
 function logout() { localStorage.removeItem("access_token"); router.push("/login"); }
 </script>

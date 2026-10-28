@@ -94,7 +94,16 @@ Thumbs.db
 # =====================
 # TestFrontend
 # =====================
-frontend/public/
+frontend/public/*
+!frontend/public/ASSET_SOURCES.md
+!frontend/public/images/
+frontend/public/images/*
+!frontend/public/images/manga-crew.jpg
+!frontend/public/images/sanji.jpg
+!frontend/public/fonts/
+frontend/public/fonts/*
+!frontend/public/fonts/bangers.ttf
+!frontend/public/fonts/OFL.txt
 frontend/.vscode
 
 # Local media storage (production should mount this as persistent data)
